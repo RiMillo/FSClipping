@@ -3,34 +3,48 @@
 
 _FS_BEGIN_NAMESPACE
 
-bool FSCellSource::IsPoly2D() const
-{
-  bool isPoly2D = false;
-  if(FSMeshEnums::IsUnstructSurfaceCellType(cellType_) && FSMeshEnums::IsPolyCellType(cellType_))
-    isPoly2D = true;
-  return isPoly2D;
-};
-
-bool FSCellSource::IsPoly3D() const
-{
-  bool isPoly3D = false;
-  if(FSMeshEnums::IsUnstructVolumeCellType(cellType_) && FSMeshEnums::IsPolyCellType(cellType_))
-    isPoly3D = true;
-  return isPoly3D;
-};
 
 FS_intT FSCellSource::NNodes(FS_intT c) const { return FSCellInfo::NNodes(cellType_, cellPool_, c); }
 
 FS_intT FSCellSource::Node(FS_intT c, FS_intT n) const { return FSCellInfo::GetCellNode(cellType_, cellPool_, c, n); }
 
-std::vector<FSCellSource> BuildCellSources(FSMesh& mesh)
+FS_intT FSCellSource::NFaces(FS_intT c) const { return FSCellInfo::NFaces(cellType_, cellPool_, c); }
+
+FS_intT FSCellSource::NFaceCorners(FS_intT c, FS_intT f) const
 {
-  const auto& cellTypes = mesh.GetCellTypes();
+  return FSCellInfo::NFaceCorners(cellType_, cellPool_, c, f);
+};
+
+FS_intT FSCellSource::FaceCorner(FS_intT c, FS_intT f, FS_intT k) const
+{
+  return FSCellInfo::GetCellFaceCorner(cellType_, cellPool_, c, f, k);
+}
+
+std::vector<FS_intT> FSCellSource::Row(FS_intT c) const
+{
+  FS_intT nNodes = NNodes(c);
+  std::vector<FS_intT> nodes;
+  nodes.reserve(nNodes);
+  for(FS_intT n = 0; n < nNodes; n++) {
+    nodes.push_back(FSCellInfo::GetCellNode(cellType_, cellPool_, c, n));
+  }
+  return nodes;
+}
+const FSMeshPolyFaceStorage* FSCellSource::PolyFaces() const
+{
+  return (isPoly3D_) ? &(dynamic_cast<const FSUnstructPolyCellPool*>(&cellPool_)->GetPolyFaceStorage()) : nullptr;
+};
+
+std::vector<FSCellSource> BuildCellSources(const FSMesh& mesh)
+{
   std::vector<FSCellSource> cellSource;
 
   for(const auto& t : mesh.GetCellTypes()) {
-    const auto& cellPool = mesh.GetMeshData()->GetUnstructCells().GetCellPool(t);
-    cellSource.emplace_back(t, *cellPool);
+    if(FSMeshEnums::IsUnstructVolumeCellType(t) || FSMeshEnums::IsUnstructSurfaceCellType(t)) {
+      const auto& cellPool = mesh.GetMeshData()->GetUnstructCells().GetCellPool(t);
+      if(cellPool)
+        cellSource.emplace_back(t, *cellPool);
+    }
   }
 
   return cellSource;

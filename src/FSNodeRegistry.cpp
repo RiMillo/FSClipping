@@ -15,7 +15,17 @@ FSNodeRegistry::FSNodeRegistry(FSMesh& mesh, const std::vector<FSCellSource>& so
     FS_floatT x = oldCoords(n, 0);
     FS_floatT y = oldCoords(n, 1);
     FS_floatT z = oldCoords(n, 2);
+    FSVec3 coord(x, y, z);
+    NodeKey key(coord, tol);
+
+    this->globalCoords_.push_back(coord);
+    this->coordToLocalNode_.emplace(key, n);
   }
+
+  std::vector<FSVec3> newCoords;
+  FS_intT elemOwner = 0;
+  // auto lambda = [&newCoords](FS_intT m, const FSFaceMatch& matche) { newCoords.push_back(matche.clippedPoly3D[0]);};
+  // matches.ForEachMatch(lambda);
 }
 
 _FS_END_NAMESPACE

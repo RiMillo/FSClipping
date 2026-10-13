@@ -40,9 +40,9 @@ public:
   FSNodeRegistry(FSMesh& mesh, const std::vector<FSCellSource>& sources, const FSCellClipped& matches, FS_floatT tol);
 
 private:
-  std::vector<FSVec3> globalCoords_;                   // deduplicated list of all node coordinates
-  std::unordered_map<NodeKey, FS_intT> coordToNode_;   // coord → index in globalCoords_
-  std::unordered_map<NodeKey, FS_intT> keyToGlobalId_; // coord → clipper-assigned global node ID
+  std::vector<FSVec3> globalCoords_;                       // deduplicated list of all node coordinates
+  std::unordered_map<NodeKey, FS_intT> coordToLocalNode_;  // coord → index (local to the proc) in globalCoords_
+  std::unordered_map<NodeKey, FS_intT> coordToGlobalNode_; // coord → index (global node ID)
 
   FS_intT nNodeOld;
 };

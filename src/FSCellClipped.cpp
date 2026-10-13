@@ -2,14 +2,29 @@
 
 _FS_BEGIN_NAMESPACE
 
-std::vector<FS_intT> FSCellClipped::MatchesOf(FS_intT c)
+bool FSCellClipped::Contains(FS_intT cell) const
 {
-  std::vector<FS_intT> matchesIndex;
-  for(FS_intT m = 0; m < matches_.size(); m++) {
-    if(matches_[m].elemOwner1 == c)
-      matchesIndex.push_back(m);
+  for(const auto& [t, cells] : be_.volumeCells) {
+    if(cells.contains(cell)) {
+      return true;
+    }
   }
-  return matchesIndex;
+  return false;
+}
+
+bool FSCellClipped::IsReplacedSurface(FS_intT surfaceCell) const
+{
+  for(const auto& t : be_.surfaceCells)
+    if(t.second.contains(surfaceCell))
+      return true;
+  return false;
+}
+
+const std::span<const FS_intT> FSCellClipped::MatchesOf(FS_intT c)
+{
+  if(!cellToMatches_.contains(c))
+    FSError.SetAndPrintAndExit("FSCellClipped: Cell does not exist");
+  return cellToMatches_.at(c);
 }
 
 _FS_END_NAMESPACE
