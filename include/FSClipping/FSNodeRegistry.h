@@ -4,47 +4,31 @@
 #include "FSClipping/FSCellClipped.h"
 #include "FSClipping/FSCellSource.h"
 #include <FSVec3.h>
+#include <span>
+#include <vector>
 
 _FS_BEGIN_NAMESPACE
-struct NodeKey {
-  FS_intT ix, iy, iz;
 
-  NodeKey(const FSVec3& p, const FS_floatT tol);
-  bool operator==(const NodeKey&) const = default;
-};
-
-/*
-std::hash specialization required for NodeKey to be used as an
-unordered_map key. Without it, the default constructor of
-unordered_map<NodeKey, ...> is implicitly deleted.
-*/
-namespace std {
-template<> struct hash<NodeKey> {
-  size_t operator()(const NodeKey& k) const noexcept
-  {
-    size_t h1 = std::hash<FS_intT>{}(k.ix);
-    size_t h2 = std::hash<FS_intT>{}(k.iy);
-    size_t h3 = std::hash<FS_intT>{}(k.iz);
-
-    size_t seed = h1;
-    seed ^= h2 + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-    seed ^= h3 + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-    return seed;
-  }
-};
-} // namespace std
+using NodeId = FS_intT; // [0, nOld) : old node, same number ; [nOld, ...) : new polygon vertex
 
 class FSNodeRegistry
 {
 public:
-  FSNodeRegistry(FSMesh& mesh, const std::vector<FSCellSource>& sources, const FSCellClipped& matches, FS_floatT tol);
+  FSNodeRegistry(FSMesh& mesh, const std::vector<FSCellSource>& sources, const FSCellClipped& clipped, FS_floatT tol);
+
+  NodeId Old(FS_intT oldNode) const noexcept { return oldNode; } // identity, no tolerance
+  std::span<const NodeId> Polygon(FS_intT match) const;
+  const FSVec3& Coord(NodeId n) const;
+  FS_intT ClipperId(NodeId n) const;
+  FS_intT Size() const noexcept { return FS_intT(coords_.size()); }
 
 private:
-  std::vector<FSVec3> globalCoords_;                       // deduplicated list of all node coordinates
-  std::unordered_map<NodeKey, FS_intT> coordToLocalNode_;  // coord → index (local to the proc) in globalCoords_
-  std::unordered_map<NodeKey, FS_intT> coordToGlobalNode_; // coord → index (global node ID)
+  std::vector<FSVec3> coords_;       // coordinates per NodeId
+  std::vector<FS_intT> clipperId_;   // nodeGlobalIds per NodeId, -1 if the node is on no polygon
+  std::vector<NodeId> polyNodes_;    // vertices of all the matches, flat
+  std::vector<FS_intT> polyOffsets_; // match m -> [polyOffsets_[m], polyOffsets_[m+1]) in polyNodes_
 
-  FS_intT nNodeOld;
+  FS_intT nOld_ = 0;
 };
 
 _FS_END_NAMESPACE

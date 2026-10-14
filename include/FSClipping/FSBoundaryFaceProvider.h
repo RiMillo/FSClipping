@@ -93,6 +93,7 @@ struct GeomFaceKeyHash {
 struct BoundaryExtraction {
   std::vector<FSClippingFace> faces;
   std::unordered_set<GeomFaceKey, GeomFaceKeyHash> faceKeys;
+  std::unordered_map<FS_intT, std::vector<FS_intT> > replacedFaces; // cell ID -> face on the border
 
   std::unordered_map<FS_intT, std::set<FS_intT> > volumeCells;
   std::unordered_map<FS_intT, std::set<FS_intT> > surfaceCells;

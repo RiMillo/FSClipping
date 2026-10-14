@@ -11,4 +11,4 @@
 /.lock-waf*
 /.cache
 /.clangd
-/test/Mesh/output
+/test/Mesh/output/*

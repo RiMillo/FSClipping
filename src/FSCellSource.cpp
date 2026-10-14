@@ -26,14 +26,14 @@ std::vector<FS_intT> FSCellSource::Row(FS_intT c) const
   std::vector<FS_intT> nodes;
   nodes.reserve(nNodes);
   for(FS_intT n = 0; n < nNodes; n++) {
-    nodes.push_back(FSCellInfo::GetCellNode(cellType_, cellPool_, c, n));
+    nodes.push_back(Node(c, n));
   }
   return nodes;
 }
 const FSMeshPolyFaceStorage* FSCellSource::PolyFaces() const
 {
-  return (isPoly3D_) ? &(dynamic_cast<const FSUnstructPolyCellPool*>(&cellPool_)->GetPolyFaceStorage()) : nullptr;
-};
+  return (isPoly3D_) ? &(static_cast<const FSUnstructPolyCellPool*>(&cellPool_)->GetPolyFaceStorage()) : nullptr;
+}
 
 std::vector<FSCellSource> BuildCellSources(const FSMesh& mesh)
 {
