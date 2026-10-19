@@ -20,6 +20,7 @@ add_library(fsclipping SHARED   FSClippingUtil.cpp
                                 FSCellSource.cpp
                                 FSCellClipped.cpp
                                 FSNodeRegistry.cpp
+                                FSPolyCell.cpp
                                 FSClippedMeshParams.cpp
                                 FSClippedMesh.cpp)
 
@@ -66,6 +67,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSCellSource.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSCellClipped.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSNodeRegistry.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSPolyCell.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSClippedMeshParams.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSClippedMeshParams.i
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSClippedMesh.h

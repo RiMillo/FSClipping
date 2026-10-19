@@ -13,7 +13,7 @@ class FSCellSource
 public:
   FSCellSource(FSMeshEnums::CellType t, const FSCellPool& cellPool)
     : cellType_(t), cellPool_(cellPool), isPoly3D_(t == FSMeshEnums::CT_Poly3D),
-      isPoly2D_((t == FSMeshEnums::CT_Poly2D)) {};
+      isPoly2D_((t == FSMeshEnums::CT_Poly2D)){};
 
   FSMeshEnums::CellType Type() const noexcept { return cellType_; }
   bool IsPoly2D() const noexcept { return isPoly2D_; }
@@ -21,6 +21,8 @@ public:
 
   FS_intT NNodes(FS_intT c) const;
   FS_intT Node(FS_intT c, FS_intT n) const;
+
+  FS_intT NCorners(FS_intT c) const;
 
   std::vector<FS_intT> Row(FS_intT c) const;
   FS_intT NFaces(FS_intT c) const;

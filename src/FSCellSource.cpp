@@ -10,6 +10,8 @@ FS_intT FSCellSource::Node(FS_intT c, FS_intT n) const { return FSCellInfo::GetC
 
 FS_intT FSCellSource::NFaces(FS_intT c) const { return FSCellInfo::NFaces(cellType_, cellPool_, c); }
 
+FS_intT FSCellSource::NCorners(FS_intT c) const { return FSCellInfo::NCorners(cellType_, cellPool_, c); }
+
 FS_intT FSCellSource::NFaceCorners(FS_intT c, FS_intT f) const
 {
   return FSCellInfo::NFaceCorners(cellType_, cellPool_, c, f);
