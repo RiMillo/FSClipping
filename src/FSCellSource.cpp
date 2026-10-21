@@ -32,6 +32,7 @@ std::vector<FS_intT> FSCellSource::Row(FS_intT c) const
   }
   return nodes;
 }
+
 const FSMeshPolyFaceStorage* FSCellSource::PolyFaces() const
 {
   return (isPoly3D_) ? &(static_cast<const FSUnstructPolyCellPool*>(&cellPool_)->GetPolyFaceStorage()) : nullptr;
