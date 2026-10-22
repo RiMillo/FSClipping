@@ -70,6 +70,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSNodeRegistry.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSPolyCell.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSTopologySink.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSTopologyData.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSClippedMeshParams.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSClippedMeshParams.i
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSClippedMesh.h

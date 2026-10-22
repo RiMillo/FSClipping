@@ -1,8 +1,9 @@
 #ifndef FSMESHRECONSTRUCTION_H
 #define FSMESHRECONSTRUCTION_H
 
-#include "FSClipping/FSTopologyAssembler.h"
+#include "FSClipping/FSTopologyData.h"
 #include <FSMesh.h>
+#include <FSUnstructMeshData.h>
 
 
 _FS_BEGIN_NAMESPACE

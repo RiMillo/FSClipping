@@ -1,4 +1,5 @@
 #include "FSClipping/FSMeshReconstruction.h"
+#include "FSClipping/FSCell2NodeBuilder.h" // NodeKey
 #include <FSMeshData.h>
 
 #include <unordered_map>
