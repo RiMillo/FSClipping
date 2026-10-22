@@ -20,6 +20,8 @@ public:
 
   static bool RunMatcherProc(FSClac& globalClac, FSClac& localClac, FS_floatT tol);
 
+  FSTopologyData BuildTopologyTmp(FSMesh& mesh, const BoundaryExtraction& be, const std::vector<FSFaceMatch>& matches);
+
 private:
   FS_floatT tol_;
 };

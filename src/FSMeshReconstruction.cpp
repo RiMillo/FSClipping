@@ -82,7 +82,7 @@ FSMesh FSMeshReconstruction::Build(const FSUnstructMeshData& meshDataOriginal, F
   if(!topologyData.poly2DGlobalNumbers.IsEmpty())
     unstructMeshData.InitCellAttribute(globalNumberName, FSMeshEnums::CT_Poly2D, topologyData.poly2DGlobalNumbers);
 
-  CopyCellAttributes(meshDataOriginal, topologyData, unstructMeshData);
+  // CopyCellAttributes(meshDataOriginal, topologyData, unstructMeshData);
 
   success = meshClipped.IsInitialized();
   if(!success)
@@ -201,7 +201,8 @@ void FSMeshReconstruction::CopyCellAttributes(const FSUnstructMeshData& meshData
       // nullptr when this parent type does not carry the attribute
       std::map<FSMeshEnums::CellType, const FSIntArrayT*> valuesOf;
       for(const auto& [t, offset] : offsetOf)
-        valuesOf[t] = meshDataOriginal.HasCellAttribute(name, t) ? &meshDataOriginal.GetCellAttribute(name, t) : nullptr;
+        valuesOf[t] =
+          meshDataOriginal.HasCellAttribute(name, t) ? &meshDataOriginal.GetCellAttribute(name, t) : nullptr;
 
       for(FS_intT i = 0; i < numCells; ++i) {
         // A carried marker wins; -1 means none was carried, so read the parent

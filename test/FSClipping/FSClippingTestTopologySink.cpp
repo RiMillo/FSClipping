@@ -4,6 +4,7 @@
 #include <set>
 #include <vector>
 
+#include "FSClipping/FSClippingEngine.h"
 #include "FSClipping/FSTopologySink.h"
 #include "MockMixedMesh.hpp"
 
@@ -166,8 +167,10 @@ protected:
   void SplitHexaBottom()
   {
     const auto t = FSMeshEnums::CT_Hexa8;
-    matches.push_back(mock::MakeMatch(Cell(t), t, {{0, 0, 0}, {0.5, 0, 0}, {0.5, 1, 0}, {0, 1, 0}}, {10, 100, 101, 13}));
-    matches.push_back(mock::MakeMatch(Cell(t), t, {{0.5, 0, 0}, {1, 0, 0}, {1, 1, 0}, {0.5, 1, 0}}, {100, 11, 12, 101}));
+    matches.push_back(
+      mock::MakeMatch(Cell(t), t, {{0, 0, 0}, {0.5, 0, 0}, {0.5, 1, 0}, {0, 1, 0}}, {10, 100, 101, 13}));
+    matches.push_back(
+      mock::MakeMatch(Cell(t), t, {{0.5, 0, 0}, {1, 0, 0}, {1, 1, 0}, {0.5, 1, 0}}, {100, 11, 12, 101}));
     be.replacedFaces[Cell(t)].push_back(LocalFace(t, {0, 1, 2, 3}));
   }
 
@@ -251,8 +254,7 @@ TEST_F(FSTopologySinkTest, AddStandardDropsUnusedNodes)
     EXPECT_EQ(tetra(0, k), k);
 
   EXPECT_EQ(ArrayValues(topo.cellParent[FSMeshEnums::CT_Tetra4]), (std::vector<FS_intT>{Cell(FSMeshEnums::CT_Tetra4)}));
-  EXPECT_EQ(ArrayValues(topo.cellParentType[FSMeshEnums::CT_Tetra4]),
-            (std::vector<FS_intT>{FSMeshEnums::CT_Tetra4}));
+  EXPECT_EQ(ArrayValues(topo.cellParentType[FSMeshEnums::CT_Tetra4]), (std::vector<FS_intT>{FSMeshEnums::CT_Tetra4}));
   EXPECT_EQ(topo.cell2NodePoly2D.Size(), 0);
   EXPECT_EQ(topo.cell2NodePoly3D.Size(), 0);
   EXPECT_EQ(topo.polyFaces.GetNumPolys(), 0);
@@ -390,6 +392,21 @@ TEST_F(FSTopologySinkTest, MixedMeshKeepsContainersAligned)
   EXPECT_EQ(topo.cell2NodeInner[FSMeshEnums::CT_Tri3].Size(0), 1);
   EXPECT_FALSE(topo.cell2NodeInner.Has(FSMeshEnums::CT_Quad4));
   EXPECT_FALSE(topo.cell2NodeInner.Has(FSMeshEnums::CT_Hexa8));
+}
+
+// Every cell of the mixed mesh, emitted as the single loop of BuildTopology will
+TEST_F(FSTopologySinkTest, FSClippingEngine)
+{
+
+  FS_floatT tol = 1e-8;
+  SplitHexaBottom();
+  FSClippingEngine engine(tol);
+
+  FSTopologyData topo = engine.BuildTopologyTmp(mesh, be, matches);
+  // All 10 old nodes plus P and R are used
+
+  auto meshClipped = engine.Reconstruct(clac, mesh, topo);
+  meshClipped.Check();
 }
 
 } // namespace
