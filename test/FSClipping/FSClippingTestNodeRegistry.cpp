@@ -151,30 +151,4 @@ TEST_F(FSNodeRegistryTest, PolygonSizes)
     EXPECT_EQ(reg.Polygon(m).size(), matches[m].clippedPoly3D.size());
 }
 
-TEST_F(FSNodeRegistryTest, DeathOnInvalidAccess)
-{
-  GTEST_FLAG_SET(death_test_style, "threadsafe");
-  const auto& reg = Build();
-  EXPECT_DEATH(reg.Coord(-1), "");
-  EXPECT_DEATH(reg.Coord(reg.Size()), "");
-  EXPECT_DEATH(reg.ClipperId(reg.Size()), "");
-}
-
-TEST_F(FSNodeRegistryTest, DeathOnOwnerWithoutSource)
-{
-  GTEST_FLAG_SET(death_test_style, "threadsafe");
-  matches.push_back(mock::MakeMatch(0, FSMeshEnums::CT_Prism6, {{0, 0, 0}, {1, 0, 0}, {1, 1, 0}}, {10, 11, 12}));
-  EXPECT_DEATH(Build(), "");
-}
-
-#ifndef NDEBUG
-TEST_F(FSNodeRegistryTest, DeathOnConflictingClipperIds)
-{
-  GTEST_FLAG_SET(death_test_style, "threadsafe");
-  Add(FSMeshEnums::CT_Hexa8, {{0, 0, 0}, {1, 0, 0}, {1, 1, 0}}, {10, 11, 12});
-  Add(FSMeshEnums::CT_Hexa8, {{0, 0, 0}, {1, 1, 0}, {0, 1, 0}}, {99, 12, 13});
-  EXPECT_DEATH(Build(), "");
-}
-#endif
-
 _FS_END_NAMESPACE

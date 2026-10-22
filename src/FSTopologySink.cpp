@@ -138,8 +138,12 @@ FSIntRegisterT FSRaggedRows::Build(const FSRenumber& renumber) const
 
 void FSPolyFaceRows::Build(FSMeshPolyFaceStorage& polyFaces) const
 {
-  if(nFaces.empty())
+  if(nFaces.empty()) {
+    polyFaces.Init(0);
+    polyFaces.EndNumFacesSetup();
+    polyFaces.EndNumNodesSetup();
     return;
+  }
   polyFaces.InitFromCountsAnd1DConnectivity(ToIntArray(nFaces), ToIntArray(nFaceNodes), ToIntArray(nodes));
 }
 

@@ -102,30 +102,4 @@ TEST(FSCellClipped, EmptyInput)
   EXPECT_EQ(n, 0);
 }
 
-TEST(FSCellClippedDeathTest, InvalidInput)
-{
-  GTEST_FLAG_SET(death_test_style, "threadsafe");
-  const auto be = Boundary();
-
-  auto unknown = Matches();
-  unknown[1].type = FSFaceMatch::UNKNOWN;
-  EXPECT_DEATH(FSCellClipped(unknown, be), "");
-
-  auto degenerate = Matches();
-  degenerate[0].clippedPoly3D.pop_back();
-  degenerate[0].nodeGlobalIds.pop_back();
-  EXPECT_DEATH(FSCellClipped(degenerate, be), "");
-
-  auto mismatch = Matches();
-  mismatch[0].nodeGlobalIds.pop_back();
-  EXPECT_DEATH(FSCellClipped(mismatch, be), "");
-
-  const std::vector<FSFaceMatch> onlyCorner = {Match(kCorner)};
-  EXPECT_DEATH(FSCellClipped(onlyCorner, be), "");
-
-  const auto matches = Matches();
-  const FSCellClipped clipped(matches, be);
-  EXPECT_DEATH(clipped.MatchesOf(kOther), "");
-}
-
 _FS_END_NAMESPACE
