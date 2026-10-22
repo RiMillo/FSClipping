@@ -321,7 +321,7 @@ TEST_F(FSTopologySinkTest, AddPoly2DStoresRowsParentsAndGlobalNumbers)
 
   FSTopologySink sink(*nodes);
   clipped->ForEachMatch([&](FS_intT m, const FSFaceMatch&) {
-    sink.AddPoly2D(quad, FSMeshEnums::CT_Quad4, nodes->Polygon(m), 40 + m);
+    sink.AddPoly2D(quad, FSMeshEnums::CT_Quad4, nodes->Polygon(m), 40 + m, 70 + m);
   });
   FSTopologyData topo = std::move(sink).Finalize();
 
@@ -336,6 +336,7 @@ TEST_F(FSTopologySinkTest, AddPoly2DStoresRowsParentsAndGlobalNumbers)
                RegistryCoords(std::vector<NodeId>(polygon.begin(), polygon.end())));
   }
   EXPECT_EQ(ArrayValues(topo.poly2DGlobalNumbers), (std::vector<FS_intT>{40, 41}));
+  EXPECT_EQ(ArrayValues(topo.poly2DMarkers), (std::vector<FS_intT>{70, 71}));
   EXPECT_EQ(ArrayValues(topo.cellParent[FSMeshEnums::CT_Poly2D]), (std::vector<FS_intT>{quad, quad}));
   EXPECT_EQ(ArrayValues(topo.cellParentType[FSMeshEnums::CT_Poly2D]),
             (std::vector<FS_intT>{FSMeshEnums::CT_Quad4, FSMeshEnums::CT_Quad4}));
@@ -358,12 +359,12 @@ TEST_F(FSTopologySinkTest, MixedMeshKeepsContainersAligned)
       else if(src.IsPoly3D())
         sink.AddPoly3D(src, c);
       else if(src.IsPoly2D())
-        sink.AddPoly2D(c, src.Type(), src.Row(c), nPoly2DOrigin++);
+        sink.AddPoly2D(c, src.Type(), src.Row(c), nPoly2DOrigin++, -1);
       else
         sink.AddStandard(src, c);
     });
   clipped->ForEachMatch([&](FS_intT m, const FSFaceMatch&) {
-    sink.AddPoly2D(Cell(FSMeshEnums::CT_Quad4), FSMeshEnums::CT_Quad4, nodes->Polygon(m), nPoly2DOrigin + m);
+    sink.AddPoly2D(Cell(FSMeshEnums::CT_Quad4), FSMeshEnums::CT_Quad4, nodes->Polygon(m), nPoly2DOrigin + m, 70 + m);
   });
   FSTopologyData topo = std::move(sink).Finalize();
 
@@ -380,6 +381,7 @@ TEST_F(FSTopologySinkTest, MixedMeshKeepsContainersAligned)
   // Original Poly2D first, then the two match polygons
   EXPECT_EQ(topo.cell2NodePoly2D.Size(), 3);
   EXPECT_EQ(topo.poly2DGlobalNumbers.Size(), 3);
+  EXPECT_EQ(ArrayValues(topo.poly2DMarkers), (std::vector<FS_intT>{-1, 70, 71}));
   EXPECT_EQ(ArrayValues(topo.cellParentType[FSMeshEnums::CT_Poly2D]),
             (std::vector<FS_intT>{FSMeshEnums::CT_Poly2D, FSMeshEnums::CT_Quad4, FSMeshEnums::CT_Quad4}));
 

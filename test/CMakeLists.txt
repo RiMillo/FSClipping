@@ -19,7 +19,8 @@ add_executable(FSClippingTest FSClipping/FSClippingTestGeo.cpp
                               FSClipping/FSClippingTestCellSource.cpp
                               FSClipping/FSClippingTestNodeRegistry.cpp
                               FSClipping/FSClippingTestPolyCell.cpp
-                              FSClipping/FSClippingTestTopologySink.cpp)
+                              FSClipping/FSClippingTestTopologySink.cpp
+                              FSClipping/FSClippingTestCellAttributes.cpp)
 target_link_libraries(FSClippingTest PUBLIC GTest::gtest_mpi_main fsclipping::fsclipping)
 set_property(TARGET FSClippingTest PROPERTY CROSSCOMPILING_EMULATOR '${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 1')
 gtest_discover_tests(FSClippingTest DISCOVERY_TIMEOUT 20 TEST_FILTER "-*Death*" PROPERTIES LABELS "CppUnitTests")

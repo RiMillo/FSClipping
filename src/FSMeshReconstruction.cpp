@@ -2,6 +2,9 @@
 #include "FSClipping/FSCell2NodeBuilder.h" // NodeKey
 #include <FSMeshData.h>
 
+#include <cassert>
+#include <map>
+#include <set>
 #include <unordered_map>
 
 FSMesh FSMeshReconstruction::Build(const FSUnstructMeshData& meshDataOriginal, FSTopologyData& topologyData)
@@ -166,56 +169,61 @@ void FSMeshReconstruction::CopyCellAttributes(const FSUnstructMeshData& meshData
     if(numCells == 0)
       continue;
 
-    // Resolve parent cell type
-    FSMeshEnums::CellType parentCellType = cellType;
+    // A Poly cell may have parents of different types: resolve the parent type cell by cell
+    const bool isPoly = FSMeshEnums::IsPolyCellType(cellType);
+    const FSIntArrayT* parentTypes = isPoly ? &topo.cellParentType.at(cellType) : nullptr;
+    assert(!isPoly || parentTypes->Size() == numCells);
+    auto parentTypeOf = [&](FS_intT i) {
+      return isPoly ? FSMeshEnums::Int2CellType((*parentTypes)[i]) : FSMeshEnums::CellType(cellType);
+    };
 
-    if(FSMeshEnums::IsPolyCellType(cellType)) {
-      const auto& parentTypes = topo.cellParentType.at(cellType);
-
-      parentCellType = FSMeshEnums::Int2CellType(parentTypes[0]);
-
-#ifndef NDEBUG
-      for(FS_intT i = 1; i < parentTypes.Size(); ++i) {
-        if(parentTypes[i] != parentTypes[0]) {
-          FSError.SetAndPrintAndExit("CopyCellAttributes: heterogeneous parent types detected");
-        }
-      }
-#endif
+    // Pool offset of each parent type present, and the union of their attribute names
+    std::map<FSMeshEnums::CellType, FS_intT> offsetOf;
+    std::set<FSString> attribNames;
+    for(FS_intT i = 0; i < numCells; ++i) {
+      const FSMeshEnums::CellType t = parentTypeOf(i);
+      if(!offsetOf.try_emplace(t, meshDataOriginal.GetCellPool(t)->GetOffset()).second)
+        continue;
+      const FSStringArrayT names = meshDataOriginal.GetCellAttributes(t);
+      for(FSStringArrayT::ConstIterator AI = names.BeginConst(); AI.IsValid(); ++AI)
+        attribNames.insert(*AI);
     }
-
-    const auto& attribNames = meshDataOriginal.GetCellAttributes(parentCellType);
-
-    const FS_intT offset = meshDataOriginal.GetCellPool(parentCellType)->GetOffset();
 
     // A Poly2D born from a match on a volume/surface pair split by the partitioner has a parent owned by another proc
     static const FSString attrCADGroupIDName = FSEnums::AttributeTypeToString(FSEnums::AT_CADGroupID);
     const bool isPoly2D = (FSMeshEnums::Int2CellType(cellType) == FSMeshEnums::CellType::CT_Poly2D);
     const bool hasCarriedMarkers = isPoly2D && topo.poly2DMarkers.Size() == numCells;
 
-    for(FSStringArrayT::ConstIterator AI = attribNames.BeginConst(); AI.IsValid(); ++AI) {
-      const auto& valuesOrig = meshDataOriginal.GetCellAttribute(*AI, parentCellType);
-
+    for(const FSString& name : attribNames) {
       FSIntArrayT valuesNew(numCells);
+      const bool useCarriedMarkers = hasCarriedMarkers && name == attrCADGroupIDName;
 
-      if(hasCarriedMarkers && *AI == attrCADGroupIDName) {
-        for(FS_intT i = 0; i < numCells; ++i)
+      // nullptr when this parent type does not carry the attribute
+      std::map<FSMeshEnums::CellType, const FSIntArrayT*> valuesOf;
+      for(const auto& [t, offset] : offsetOf)
+        valuesOf[t] = meshDataOriginal.HasCellAttribute(name, t) ? &meshDataOriginal.GetCellAttribute(name, t) : nullptr;
+
+      for(FS_intT i = 0; i < numCells; ++i) {
+        // A carried marker wins; -1 means none was carried, so read the parent
+        if(useCarriedMarkers && topo.poly2DMarkers[i] >= 0) {
           valuesNew[i] = topo.poly2DMarkers[i];
-      } else {
-        for(FS_intT i = 0; i < numCells; ++i) {
-          const FS_intT localId = parentArray[i] - offset;
-          if(localId < 0 || localId >= valuesOrig.Size()) {
-            // Parent owned by another proc and no carried value for this attribute.
-            valuesNew[i] = -1;
-            continue;
-          }
-          valuesNew[i] = valuesOrig[localId];
+          continue;
         }
+        const FSMeshEnums::CellType t = parentTypeOf(i);
+        const FSIntArrayT* valuesOrig = valuesOf[t];
+        const FS_intT localId = parentArray[i] - offsetOf[t];
+        // Parent owned by another proc, or attribute missing on its type: no value to copy
+        if(!valuesOrig || localId < 0 || localId >= valuesOrig->Size()) {
+          valuesNew[i] = -1;
+          continue;
+        }
+        valuesNew[i] = (*valuesOrig)[localId];
       }
 
-      meshDataNew.InitCellAttribute(*AI, cellType, valuesNew);
+      meshDataNew.InitCellAttribute(name, cellType, valuesNew);
 
-      if(meshDataOriginal.HasCellAttributeValueNames(*AI)) {
-        meshDataNew.SetCellAttributeValueNames(*AI, meshDataOriginal.GetCellAttributeValueNames(*AI));
+      if(meshDataOriginal.HasCellAttributeValueNames(name)) {
+        meshDataNew.SetCellAttributeValueNames(name, meshDataOriginal.GetCellAttributeValueNames(name));
       }
     }
   }
