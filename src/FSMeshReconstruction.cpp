@@ -78,11 +78,12 @@ FSMesh FSMeshReconstruction::Build(const FSUnstructMeshData& meshDataOriginal, F
       }
     }
   }
-  // Poly2D global numbers come from the clipper's match numbering
+  // Poly2D global numbers come from the clipper's match numbering, original Poly2D follow
+  NumberOriginalPoly2D(topologyData);
   if(!topologyData.poly2DGlobalNumbers.IsEmpty())
     unstructMeshData.InitCellAttribute(globalNumberName, FSMeshEnums::CT_Poly2D, topologyData.poly2DGlobalNumbers);
 
-  // CopyCellAttributes(meshDataOriginal, topologyData, unstructMeshData);
+  CopyCellAttributes(meshDataOriginal, topologyData, unstructMeshData);
 
   success = meshClipped.IsInitialized();
   if(!success)
@@ -160,6 +161,35 @@ void FSMeshReconstruction::RemapToDistributedNumbering(FSTopologyData& topo, std
   }
 }
 
+void FSMeshReconstruction::NumberOriginalPoly2D(FSTopologyData& topo)
+{
+  FSIntArrayT& globalNumbers = topo.poly2DGlobalNumbers;
+
+  // Local number of matches (max id + 1) and of Poly2D to number
+  FS_int32T local[2] = {0, 0};
+  for(FS_intT i = 0; i < globalNumbers.Size(); ++i) {
+    if(globalNumbers[i] >= 0)
+      local[0] = std::max(local[0], static_cast<FS_int32T>(globalNumbers[i] + 1));
+    else
+      ++local[1];
+  }
+
+  const FS_intT nProcs = clac_.GetNProcs();
+  std::vector<FS_int32T> all(2 * nProcs);
+  clac_.AllGather(local, 2, all.data(), 2);
+
+  // Matches take 0..M-1 on every proc, then each proc gets a contiguous range in rank order
+  FS_intT next = 0;
+  for(FS_intT p = 0; p < nProcs; ++p)
+    next = std::max(next, static_cast<FS_intT>(all[2 * p]));
+  for(FS_intT p = 0; p < clac_.GetProcID(); ++p)
+    next += all[2 * p + 1];
+
+  for(FS_intT i = 0; i < globalNumbers.Size(); ++i)
+    if(globalNumbers[i] < 0)
+      globalNumbers[i] = next++;
+}
+
 void FSMeshReconstruction::CopyCellAttributes(const FSUnstructMeshData& meshDataOriginal, const FSTopologyData& topo,
                                               FSUnstructMeshData& meshDataNew)
 {
@@ -182,12 +212,21 @@ void FSMeshReconstruction::CopyCellAttributes(const FSUnstructMeshData& meshData
     std::set<FSString> attribNames;
     for(FS_intT i = 0; i < numCells; ++i) {
       const FSMeshEnums::CellType t = parentTypeOf(i);
-      if(!offsetOf.try_emplace(t, meshDataOriginal.GetCellPool(t)->GetOffset()).second)
+      if(offsetOf.contains(t))
         continue;
+      // Undefined parent type, or no pool of that type on this proc: nothing to read
+      const FSCellPool* pool = meshDataOriginal.GetCellPool(t);
+      if(!pool)
+        continue;
+      offsetOf.emplace(t, pool->GetOffset());
       const FSStringArrayT names = meshDataOriginal.GetCellAttributes(t);
       for(FSStringArrayT::ConstIterator AI = names.BeginConst(); AI.IsValid(); ++AI)
         attribNames.insert(*AI);
     }
+
+    // Global numbers are set by the reconstruction, never inherited from the parent
+    static const FSString attrGlobalNumberName = FSMeshEnums::AttributeTypeToString(FSMeshEnums::AT_GlobalNumber);
+    attribNames.erase(attrGlobalNumberName);
 
     // A Poly2D born from a match on a volume/surface pair split by the partitioner has a parent owned by another proc
     static const FSString attrCADGroupIDName = FSEnums::AttributeTypeToString(FSEnums::AT_CADGroupID);
@@ -210,10 +249,10 @@ void FSMeshReconstruction::CopyCellAttributes(const FSUnstructMeshData& meshData
           valuesNew[i] = topo.poly2DMarkers[i];
           continue;
         }
-        const FSMeshEnums::CellType t = parentTypeOf(i);
-        const FSIntArrayT* valuesOrig = valuesOf[t];
-        const FS_intT localId = parentArray[i] - offsetOf[t];
-        // Parent owned by another proc, or attribute missing on its type: no value to copy
+        const auto it = valuesOf.find(parentTypeOf(i));
+        const FSIntArrayT* valuesOrig = (it != valuesOf.end()) ? it->second : nullptr;
+        const FS_intT localId = valuesOrig ? parentArray[i] - offsetOf.at(it->first) : -1;
+        // Parent owned by another proc, without local pool, or attribute missing on its type: no value to copy
         if(!valuesOrig || localId < 0 || localId >= valuesOrig->Size()) {
           valuesNew[i] = -1;
           continue;

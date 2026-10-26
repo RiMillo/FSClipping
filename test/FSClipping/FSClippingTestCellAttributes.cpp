@@ -172,6 +172,31 @@ TEST_F(FSCopyCellAttributesTest, MissingCarriedMarkerFallsBackToParent)
   EXPECT_EQ(Values(md, kCADGroupID, FSMeshEnums::CT_Poly2D), (std::vector<FS_intT>{3, 8}));
 }
 
+// A parent type without local pool (undefined, or absent from the mesh) gives -1 instead of crashing
+TEST_F(FSCopyCellAttributesTest, ParentTypeWithoutPoolGivesMinusOne)
+{
+  FSMesh target = BuildTarget(clac, 3, 0);
+  FSTopologyData topo;
+  topo.cellParent[FSMeshEnums::CT_Poly2D] = ToArray({mock::Offset(source, FSMeshEnums::CT_Quad4), -1, 0});
+  topo.cellParentType[FSMeshEnums::CT_Poly2D] =
+    ToArray({FSMeshEnums::CT_Quad4, FSMeshEnums::CT_Undefined, FSMeshEnums::CT_Prism6});
+  Copy(topo, target);
+
+  const auto& md = target.GetMeshData()->GetUnstructCells();
+  EXPECT_EQ(Values(md, kCADID, FSMeshEnums::CT_Poly2D), (std::vector<FS_intT>{22, -1, -1}));
+}
+
+// GlobalNumber is set by the reconstruction, never copied from the parent
+TEST_F(FSCopyCellAttributesTest, GlobalNumberIsNotCopied)
+{
+  FSMesh target = BuildTarget(clac, 2, 0);
+  Copy(Topology(FSMeshEnums::CT_Poly2D, {FSMeshEnums::CT_Tri3, FSMeshEnums::CT_Quad4}), target);
+
+  const FSString globalNumberName = FSMeshEnums::AttributeTypeToString(FSMeshEnums::AT_GlobalNumber);
+  ASSERT_TRUE(source.GetMeshData()->GetUnstructCells().HasCellAttribute(globalNumberName, FSMeshEnums::CT_Quad4));
+  EXPECT_FALSE(target.GetMeshData()->GetUnstructCells().HasCellAttribute(globalNumberName, FSMeshEnums::CT_Poly2D));
+}
+
 // Same limitation for clipped volume cells of different types
 TEST_F(FSCopyCellAttributesTest, Poly3DWithHexaAndTetraParentsCopiesEachParentValue)
 {

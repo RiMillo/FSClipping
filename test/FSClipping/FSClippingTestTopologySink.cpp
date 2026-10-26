@@ -6,7 +6,10 @@
 
 #include "FSClipping/FSClippingEngine.h"
 #include "FSClipping/FSTopologySink.h"
+#include "FSMeshExportFilterVTK.h"
+#include "FSMeshExportParamsVTK.h"
 #include "MockMixedMesh.hpp"
+#include "TestUtils.hpp"
 
 _FS_BEGIN_NAMESPACE
 
@@ -34,6 +37,16 @@ std::vector<FS_intT> ArrayValues(const FSIntArrayT& a)
   for(FS_intT i = 0; i < a.Size(); i++)
     v.push_back(a[i]);
   return v;
+}
+
+void WriteVTK(FSClac& clac, FSMeshData& meshData, const std::string& filename)
+{
+  FSMeshExportFilterVTK exportFilter(&clac);
+  FSMeshExportParamsVTK params;
+  params.mMeshFilename = filename;
+  params.mFormatType = FSVtkEnums::FT_ASCII;
+  FSMeshData* meshDataPtr = &meshData;
+  EXPECT_TRUE(exportFilter.DoOp(meshDataPtr, &params)) << "VTK export failed: " << filename;
 }
 
 // ---------------------------------------------------------------------------
@@ -172,6 +185,19 @@ protected:
     matches.push_back(
       mock::MakeMatch(Cell(t), t, {{0.5, 0, 0}, {1, 0, 0}, {1, 1, 0}, {0.5, 1, 0}}, {100, 11, 12, 101}));
     be.replacedFaces[Cell(t)].push_back(LocalFace(t, {0, 1, 2, 3}));
+    // The Quad4 closing that face is replaced by the match polygons, as FSBoundaryFaceProvider records it
+    be.surfaceCells[FSMeshEnums::CT_Quad4].insert(Cell(FSMeshEnums::CT_Quad4));
+  }
+
+  // Fields the clipper fills on each match: Poly2D global number, closed surface cell and its carried marker
+  void FillClipperFields(FS_intT marker)
+  {
+    for(size_t m = 0; m < matches.size(); m++) {
+      matches[m].globalCellId = FS_intT(m);
+      matches[m].faceOwner1 = Cell(FSMeshEnums::CT_Quad4);
+      matches[m].faceOwnerType1 = FSMeshEnums::CT_Quad4;
+      matches[m].faceMarker1 = marker;
+    }
   }
 
   void BuildRegistry()
@@ -407,6 +433,63 @@ TEST_F(FSTopologySinkTest, FSClippingEngine)
 
   auto meshClipped = engine.Reconstruct(clac, mesh, topo);
   meshClipped.Check();
+
+  WriteVTK(clac, *mesh.GetMeshData(), MeshPath("output/engine_mock_orig.vtk"));
+  WriteVTK(clac, *meshClipped.GetMeshData(), MeshPath("output/engine_mock_clipped.vtk"));
+}
+
+// Original Poly2D and match polygons share one Poly2D numbering: it must be 0..N-1 without duplicates
+TEST_F(FSTopologySinkTest, Poly2DGlobalNumbersAreContiguous)
+{
+  const FS_floatT tol = 1e-8;
+  SplitHexaBottom();
+  FillClipperFields(-1);
+
+  FSClippingEngine engine(tol);
+  FSTopologyData topo = engine.BuildTopologyTmp(mesh, be, matches);
+  FSMesh meshClipped = engine.Reconstruct(clac, mesh, topo);
+
+  const FSString globalNumberName = FSMeshEnums::AttributeTypeToString(FSMeshEnums::AT_GlobalNumber);
+  const FSUnstructMeshData& um = meshClipped.GetMeshData()->GetUnstructCells();
+  ASSERT_TRUE(um.HasCellAttribute(globalNumberName, FSMeshEnums::CT_Poly2D));
+
+  // Original Poly2D first, then the two match polygons numbered 0 and 1 by the clipper
+  std::vector<FS_intT> gn = ArrayValues(um.GetCellAttribute(globalNumberName, FSMeshEnums::CT_Poly2D));
+  ASSERT_EQ(gn.size(), 3u);
+  EXPECT_EQ(gn[1], 0);
+  EXPECT_EQ(gn[2], 1);
+  std::sort(gn.begin(), gn.end());
+  EXPECT_EQ(gn, (std::vector<FS_intT>{0, 1, 2})) << "the original Poly2D must be numbered after the match polygons";
+}
+
+// CADGroupID: kept cells read their parent, match polygons take the marker carried by the clipper
+TEST_F(FSTopologySinkTest, Poly2DMarkersAreCopied)
+{
+  const FS_floatT tol = 1e-8;
+  const FSString cadGroupID = FSEnums::AttributeTypeToString(FSEnums::AT_CADGroupID);
+  auto addMarker = [&](FSMeshEnums::CellType t, FS_intT v) {
+    FSIntArrayT values(1);
+    values[0] = v;
+    mesh.GetMeshData()->GetUnstructCells().InitCellAttribute(cadGroupID, t, values);
+  };
+  addMarker(FSMeshEnums::CT_Quad4, 1);
+  addMarker(FSMeshEnums::CT_Tri3, 2);
+  addMarker(FSMeshEnums::CT_Poly2D, 3);
+
+  // Carried marker differs from the Quad4 one, to tell both paths apart
+  SplitHexaBottom();
+  FillClipperFields(7);
+
+  FSClippingEngine engine(tol);
+  FSTopologyData topo = engine.BuildTopologyTmp(mesh, be, matches);
+  EXPECT_EQ(ArrayValues(topo.poly2DMarkers), (std::vector<FS_intT>{-1, 7, 7}));
+  FSMesh meshClipped = engine.Reconstruct(clac, mesh, topo);
+
+  const FSUnstructMeshData& um = meshClipped.GetMeshData()->GetUnstructCells();
+  ASSERT_TRUE(um.HasCellAttribute(cadGroupID, FSMeshEnums::CT_Poly2D)) << "CADGroupID not copied to Poly2D";
+  EXPECT_EQ(ArrayValues(um.GetCellAttribute(cadGroupID, FSMeshEnums::CT_Poly2D)), (std::vector<FS_intT>{3, 7, 7}));
+  ASSERT_TRUE(um.HasCellAttribute(cadGroupID, FSMeshEnums::CT_Tri3)) << "CADGroupID not copied to Tri3";
+  EXPECT_EQ(ArrayValues(um.GetCellAttribute(cadGroupID, FSMeshEnums::CT_Tri3)), (std::vector<FS_intT>{2}));
 }
 
 } // namespace

@@ -121,8 +121,8 @@ FSTopologyData FSClippingEngine::BuildTopologyTmp(FSMesh& mesh, const BoundaryEx
         return;
       else if(src.IsPoly3D())
         out.AddPoly3D(src, c);
-      else if(src.IsPoly2D())
-        out.AddPoly2D(c, src.Type(), src.Row(c), c, -1);
+      else if(src.IsPoly2D()) // global number -1: numbered after the matches by FSMeshReconstruction
+        out.AddPoly2D(c, src.Type(), src.Row(c), -1, -1);
       else
         out.AddStandard(src, c);
     });
