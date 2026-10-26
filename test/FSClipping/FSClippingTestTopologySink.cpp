@@ -428,7 +428,7 @@ TEST_F(FSTopologySinkTest, FSClippingEngine)
   SplitHexaBottom();
   FSClippingEngine engine(tol);
 
-  FSTopologyData topo = engine.BuildTopologyTmp(mesh, be, matches);
+  FSTopologyData topo = engine.BuildTopology(mesh, be, matches);
   // All 10 old nodes plus P and R are used
 
   auto meshClipped = engine.Reconstruct(clac, mesh, topo);
@@ -446,7 +446,7 @@ TEST_F(FSTopologySinkTest, Poly2DGlobalNumbersAreContiguous)
   FillClipperFields(-1);
 
   FSClippingEngine engine(tol);
-  FSTopologyData topo = engine.BuildTopologyTmp(mesh, be, matches);
+  FSTopologyData topo = engine.BuildTopology(mesh, be, matches);
   FSMesh meshClipped = engine.Reconstruct(clac, mesh, topo);
 
   const FSString globalNumberName = FSMeshEnums::AttributeTypeToString(FSMeshEnums::AT_GlobalNumber);
@@ -481,7 +481,7 @@ TEST_F(FSTopologySinkTest, Poly2DMarkersAreCopied)
   FillClipperFields(7);
 
   FSClippingEngine engine(tol);
-  FSTopologyData topo = engine.BuildTopologyTmp(mesh, be, matches);
+  FSTopologyData topo = engine.BuildTopology(mesh, be, matches);
   EXPECT_EQ(ArrayValues(topo.poly2DMarkers), (std::vector<FS_intT>{-1, 7, 7}));
   FSMesh meshClipped = engine.Reconstruct(clac, mesh, topo);
 

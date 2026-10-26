@@ -3,7 +3,7 @@
 
 #include "FSClipping/FSBoundaryFaceProvider.h"
 #include "FSClipping/FSFaceMatcher.h"
-#include "FSClipping/FSTopologyAssembler.h"
+#include "FSClipping/FSTopologyData.h"
 #include <FSMesh.h>
 
 _FS_BEGIN_NAMESPACE
@@ -19,8 +19,6 @@ public:
   FSMesh Reconstruct(FSClac& clac, FSMesh& meshOriginal, FSTopologyData& topo, bool copyAttributes = false);
 
   static bool RunMatcherProc(FSClac& globalClac, FSClac& localClac, FS_floatT tol);
-
-  FSTopologyData BuildTopologyTmp(FSMesh& mesh, const BoundaryExtraction& be, const std::vector<FSFaceMatch>& matches);
 
 private:
   FS_floatT tol_;
