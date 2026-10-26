@@ -1,5 +1,5 @@
 #include "FSClipping/FSMeshReconstruction.h"
-#include "FSClipping/FSCell2NodeBuilder.h" // NodeKey
+#include "FSClipping/FSNodeKey.h"
 #include <FSMeshData.h>
 
 #include <cassert>

@@ -9,10 +9,7 @@ add_library(fsclipping SHARED   FSClippingUtil.cpp
                                 FSClippingFace.cpp
                                 FSFaceSeparator.cpp
                                 FSFaceMatcher.cpp
-                                FSCell2NodeBuilder.cpp
-                                FSPolyFaceBuilder.cpp
                                 FSBoundaryFaceProvider.cpp
-                                FSTopologyAssembler.cpp
                                 FSMeshReconstruction.cpp
                                 FSClippingEngine.cpp
                                 FSClippingInterface.cpp
@@ -57,11 +54,9 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSClippingUtil.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSFace.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSFaceSeparator.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSCell2NodeBuilder.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSPolyFaceBuilder.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSBoundaryFaceProvider.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSTopologyAssembler.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSMeshReconstruction.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSNodeKey.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSClippingEngine.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSClippingInterface.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSFaceExchange.h

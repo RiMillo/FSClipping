@@ -1,6 +1,6 @@
 #include "FSClipping/FSClippingUtil.h"
 #include "FSClipping/FSFaceMatcher.h"
-#include "FSClipping/FSCell2NodeBuilder.h" // NodeKey
+#include "FSClipping/FSNodeKey.h"
 
 #include <algorithm>
 #include <unordered_map>

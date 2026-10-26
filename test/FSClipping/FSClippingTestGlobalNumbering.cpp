@@ -1,6 +1,4 @@
-#include "FSClipping/FSCell2NodeBuilder.h"
 #include "FSClipping/FSFaceMatcher.h"
-#include "FSClipping/FSTopologyAssembler.h"
 
 #include <gtest/gtest.h>
 
@@ -112,41 +110,4 @@ TEST(AssignGlobalNodeIds, EmptyMatchesReturnsZero)
 {
   std::vector<FSFaceMatch> matches;
   EXPECT_EQ(FSFaceMatcher::AssignGlobalNodeIds(matches, 1e-12), 0);
-}
-
-TEST(BuildSurfaceTopo, PropagatesGlobalNumbering)
-{
-  const FS_floatT tol = 1e-12;
-
-  std::vector<FSFaceMatch> matches = {
-    MakeMatch({FSVec3(0, 0, 0), FSVec3(1, 0, 0), FSVec3(0, 1, 0)}),
-    MakeMatch({FSVec3(1, 0, 0), FSVec3(1, 1, 0), FSVec3(0, 1, 0)}),
-  };
-  matches[0].elemOwner1 = 10;
-  matches[0].elemOwnerType1 = FSMeshEnums::CellType::CT_Hexa8;
-  matches[1].elemOwner1 = 11;
-  matches[1].elemOwnerType1 = FSMeshEnums::CellType::CT_Hexa8;
-
-  // Clipper side: assign the numbering before "sending".
-  const FS_intT nUnique = FSFaceMatcher::AssignGlobalNodeIds(matches, tol);
-  ASSERT_EQ(nUnique, 4);
-
-  // Mesh proc side: build the surface topology from the received matches.
-  FSTopologyAssembler assembler(tol);
-  std::unordered_set<GeomFaceKey, GeomFaceKeyHash> faceKeys;
-  FSTopologyData topo = assembler.BuildSurfaceTopo(matches, faceKeys);
-
-  // Node numbering: parallel to globalCoords, every ID valid and unique.
-  ASSERT_EQ(topo.nodeGlobalNumbers.Size(), static_cast<FS_intT>(topo.globalCoords.size()));
-  std::set<FS_intT> ids;
-  for(FS_intT l = 0; l < topo.nodeGlobalNumbers.Size(); ++l) {
-    EXPECT_GE(topo.nodeGlobalNumbers[l], 0);
-    ids.insert(topo.nodeGlobalNumbers[l]);
-  }
-  EXPECT_EQ(static_cast<FS_intT>(ids.size()), nUnique);
-
-  // Poly2D numbering: match order.
-  ASSERT_EQ(topo.poly2DGlobalNumbers.Size(), 2);
-  EXPECT_EQ(topo.poly2DGlobalNumbers[0], 0);
-  EXPECT_EQ(topo.poly2DGlobalNumbers[1], 1);
 }

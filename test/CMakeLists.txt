@@ -10,8 +10,6 @@ include(GoogleTest)
 add_executable(FSClippingTest FSClipping/FSClippingTestGeo.cpp
                               FSClipping/FSClippingTestBoundaryExtractor.cpp
                               FSClipping/FSClippingTestMatches.cpp
-                              FSClipping/FSClippingTestCell2NodeBuilder.cpp
-                              FSClipping/FSClippingTestPolyFaceBuilder.cpp
                               FSClipping/FSClippingTestGlobalNumbering.cpp
                               FSClipping/FSClippingTestInterface.cpp
                               FSClipping/FSClippingTestGeomFaceKey.cpp
