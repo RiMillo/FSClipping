@@ -12,7 +12,6 @@ add_library(fsclipping SHARED   FSClippingUtil.cpp
                                 FSBoundaryFaceProvider.cpp
                                 FSMeshReconstruction.cpp
                                 FSClippingEngine.cpp
-                                FSClippingInterface.cpp
                                 FSFaceExchange.cpp
                                 FSCellSource.cpp
                                 FSCellClipped.cpp
@@ -58,7 +57,6 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSMeshReconstruction.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSNodeKey.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSClippingEngine.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSClippingInterface.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSFaceExchange.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSCellSource.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSCellClipped.h

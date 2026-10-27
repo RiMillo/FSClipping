@@ -10,7 +10,9 @@
 #include <FSMeshData.h>
 #include <FSMeshPrintInfo.h>
 
-#include "FSClipping/FSClippingInterface.h"
+#include "FSClipping/FSBoundaryFaceProvider.h"
+#include "FSClipping/FSClippingEngine.h"
+#include "FSClipping/FSFaceMatcher.h"
 #include "TestUtils.hpp"
 
 _FS_BEGIN_NAMESPACE
@@ -182,9 +184,28 @@ void CheckMesh(FSClac& clac, FSMeshData* meshData)
   FSMeshCheck meshCheck(&clac);
   ASSERT_TRUE(meshCheck.DoOp(meshData, &dummy)) << "Check failed";
 }
+
+// Sequential clipping pipeline: clips mesh1 by mesh2 on a single proc.
+FSMesh ClipSerial(FSClac& clac1, FSClac& clac2, FSMesh& mesh1, FSMesh& mesh2, FS_intT marker1, FS_intT marker2,
+                  FS_floatT tol)
+{
+  FSMeshFaceExtractor extractor1, extractor2;
+  auto boundaryExtraction1 = FSBoundaryFaceProvider::Extract(mesh1, extractor1, marker1, tol);
+  auto boundaryExtraction2 = FSBoundaryFaceProvider::Extract(mesh2, extractor2, marker2, tol);
+
+  FSFaceMatcher matcher(clac2, boundaryExtraction1.faces, boundaryExtraction2.faces, tol);
+  std::vector<FSFaceMatch> matches;
+  matcher.ComputeMatches(matches);
+  EXPECT_FALSE(matches.empty()) << "No matches were found";
+  FSFaceMatcher::AssignGlobalNodeIds(matches, tol);
+
+  FSClippingEngine engine(tol);
+  FSTopologyData topology = engine.BuildTopology(mesh1, boundaryExtraction1, matches);
+  return engine.Reconstruct(clac1, mesh1, topology);
+}
 } // namespace
 
-TEST(FSClippingTestInterface, ReconstructClippedMesh3DHexaHexa)
+TEST(FSClippingTestInterface, ReconstructClippedMeshHexaHexa)
 {
   FSClac clac1, clac2, clac3;
 
@@ -195,9 +216,7 @@ TEST(FSClippingTestInterface, ReconstructClippedMesh3DHexaHexa)
   const FS_intT marker2 = 1;
   const FS_floatT tol = 1e-8;
 
-  FSClippingInterface clip(clac1, clac2, tol, marker1, marker2);
-
-  auto meshClipped = clip.BuildInterface(mesh1, mesh2);
+  auto meshClipped = ClipSerial(clac1, clac2, mesh1, mesh2, marker1, marker2, tol);
   FSMeshData* ptr = meshClipped.GetMeshData();
 
   CheckMesh(clac3, ptr);
@@ -206,10 +225,10 @@ TEST(FSClippingTestInterface, ReconstructClippedMesh3DHexaHexa)
 
   polyMeshExtractFaces(ptr->GetUnstructCells());
 
-  polyMeshExportImport(&clac3, ptr, MeshPath("output/cube3D_clipped_HexaHexa"), 1, false);
+  polyMeshExportImport(&clac3, ptr, MeshPath("output/cube_clipped_HexaHexa"), 1, false);
 }
 
-TEST(FSClippingTestInterface, ReconstructClippedMesh3DHexaTetra)
+TEST(FSClippingTestInterface, ReconstructClippedMeshHexaTetra)
 {
   FSClac clac1, clac2, clac3;
 
@@ -220,9 +239,7 @@ TEST(FSClippingTestInterface, ReconstructClippedMesh3DHexaTetra)
   const FS_intT marker2 = 1;
   const FS_floatT tol = 1e-8; // hole when tol < 1e-3
 
-  FSClippingInterface clip(clac1, clac2, tol, marker1, marker2);
-
-  auto meshClipped = clip.BuildInterface(mesh1, mesh2);
+  auto meshClipped = ClipSerial(clac1, clac2, mesh1, mesh2, marker1, marker2, tol);
   FSMeshData* ptr = meshClipped.GetMeshData();
 
   CheckMesh(clac3, ptr);
@@ -231,10 +248,10 @@ TEST(FSClippingTestInterface, ReconstructClippedMesh3DHexaTetra)
 
   polyMeshExtractFaces(ptr->GetUnstructCells());
 
-  polyMeshExportImport(&clac3, ptr, MeshPath("output/cube3D_clipped_HexaTetra"), 1, false);
+  polyMeshExportImport(&clac3, ptr, MeshPath("output/cube_clipped_HexaTetra"), 1, false);
 }
 
-TEST(FSClippingTestInterface, ReconstructClippedMesh3DHexaHexaRotate)
+TEST(FSClippingTestInterface, ReconstructClippedMeshHexaHexaRotate)
 {
   FSClac clac1, clac2, clac3;
 
@@ -245,9 +262,7 @@ TEST(FSClippingTestInterface, ReconstructClippedMesh3DHexaHexaRotate)
   const FS_intT marker2 = 1;
   const FS_floatT tol = 1e-10;
 
-  FSClippingInterface clip(clac1, clac2, tol, marker1, marker2);
-
-  auto meshClipped = clip.BuildInterface(mesh1, mesh2);
+  auto meshClipped = ClipSerial(clac1, clac2, mesh1, mesh2, marker1, marker2, tol);
   FSMeshData* ptr = meshClipped.GetMeshData();
 
   CheckMesh(clac3, ptr);
@@ -256,7 +271,7 @@ TEST(FSClippingTestInterface, ReconstructClippedMesh3DHexaHexaRotate)
 
   polyMeshExtractFaces(ptr->GetUnstructCells());
 
-  polyMeshExportImport(&clac3, ptr, MeshPath("output/cube3D_clipped_HexaHexaRotate"), 1, false);
+  polyMeshExportImport(&clac3, ptr, MeshPath("output/cube_clipped_HexaHexaRotate"), 1, false);
 }
 
 TEST(FSClippingTestInterface, ReconstructClippedMesh2Cylinders)
@@ -269,9 +284,7 @@ TEST(FSClippingTestInterface, ReconstructClippedMesh2Cylinders)
   const FS_intT marker1 = 1;
   const FS_intT marker2 = 1;
   const FS_floatT tol = 1e-6;
-  FSClippingInterface clip(clac1, clac2, tol, marker1, marker2);
-
-  auto meshClipped = clip.BuildInterface(mesh1, mesh2);
+  auto meshClipped = ClipSerial(clac1, clac2, mesh1, mesh2, marker1, marker2, tol);
   FSMeshData* ptr = meshClipped.GetMeshData();
 
   CheckMesh(clac3, ptr);
@@ -298,9 +311,7 @@ TEST(FSClippingTestInterface, ReconstructClippedMeshMultiElement)
   const FS_intT marker1 = 1;
   const FS_intT marker2 = 2;
   const FS_floatT tol = 1e-6;
-  FSClippingInterface clip(clac1, clac2, tol, marker1, marker2);
-
-  auto meshClipped = clip.BuildInterface(mesh1, mesh2);
+  auto meshClipped = ClipSerial(clac1, clac2, mesh1, mesh2, marker1, marker2, tol);
   FSMeshData* ptr = meshClipped.GetMeshData();
 
   CheckMesh(clac3, ptr);
@@ -309,6 +320,6 @@ TEST(FSClippingTestInterface, ReconstructClippedMeshMultiElement)
 
   polyMeshExtractFaces(ptr->GetUnstructCells());
 
-  polyMeshExportImport(&clac3, ptr, MeshPath("output/cube3D_clipped_2Times"), 1, false);
+  polyMeshExportImport(&clac3, ptr, MeshPath("output/cube_clipped_2Times"), 1, false);
 }
 _FS_END_NAMESPACE
