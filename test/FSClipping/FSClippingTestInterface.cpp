@@ -190,8 +190,8 @@ FSMesh ClipSerial(FSClac& clac1, FSClac& clac2, FSMesh& mesh1, FSMesh& mesh2, FS
                   FS_floatT tol)
 {
   FSMeshFaceExtractor extractor1, extractor2;
-  auto boundaryExtraction1 = FSBoundaryFaceProvider::Extract(mesh1, extractor1, marker1, tol);
-  auto boundaryExtraction2 = FSBoundaryFaceProvider::Extract(mesh2, extractor2, marker2, tol);
+  auto boundaryExtraction1 = FSBoundaryFaceProvider::Extract(mesh1, extractor1, marker1);
+  auto boundaryExtraction2 = FSBoundaryFaceProvider::Extract(mesh2, extractor2, marker2);
 
   FSFaceMatcher matcher(clac2, boundaryExtraction1.faces, boundaryExtraction2.faces, tol);
   std::vector<FSFaceMatch> matches;

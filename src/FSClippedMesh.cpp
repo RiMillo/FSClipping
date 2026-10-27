@@ -128,7 +128,7 @@ bool FSClippedMesh::GenerateClippedMesh(FS_intT meshId)
 
     // 1 - Extract the boundaries faces with the marker
     FSMeshFaceExtractor fex;
-    BoundaryExtraction be = FSBoundaryFaceProvider::Extract(*mesh, fex, marker, mParams.mTol);
+    BoundaryExtraction be = FSBoundaryFaceProvider::Extract(*mesh, fex, marker);
 
     FS_int32T nFaces32 = static_cast<FS_int32T>(be.faces.size());
     std::vector<FS_int32T> countsFaces(mesh->GetClac()->NProcs(), 0);

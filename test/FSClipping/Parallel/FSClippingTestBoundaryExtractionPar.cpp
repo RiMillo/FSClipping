@@ -14,6 +14,9 @@
 #include "TestUtilsParallel.hpp"
 #include "gtest/gtest.h"
 
+#include <set>
+#include <utility>
+
 _FS_BEGIN_NAMESPACE
 
 namespace {
@@ -40,7 +43,7 @@ TEST(FSClippingTestBoundaryExtractionPar, FaceCountIsPartitionIndependent)
   FSMesh mesh = LoadRepartitionedCube(clac);
 
   FSMeshFaceExtractor ex;
-  const BoundaryExtraction extraction = FSBoundaryFaceProvider::Extract(mesh, ex, sMarker, 1e-8);
+  const BoundaryExtraction extraction = FSBoundaryFaceProvider::Extract(mesh, ex, sMarker);
 
   FS_int32T localFaces = static_cast<FS_int32T>(extraction.faces.size());
   FS_int32T totalFaces = 0;
@@ -57,16 +60,22 @@ TEST(FSClippingTestBoundaryExtractionPar, NoFaceIsExtractedTwice)
   FSMesh mesh = LoadRepartitionedCube(clac);
 
   FSMeshFaceExtractor ex;
-  const BoundaryExtraction extraction = FSBoundaryFaceProvider::Extract(mesh, ex, sMarker, 1e-8);
+  const BoundaryExtraction extraction = FSBoundaryFaceProvider::Extract(mesh, ex, sMarker);
 
-  // Each proc must hold distinct faces ...
-  EXPECT_EQ(extraction.faceKeys.size(), extraction.faces.size()) << "a face was extracted twice on this proc";
-
-  // ... and a split pair, reported to both of its procs, must not be kept by both.
-  FS_int32T localKeys = static_cast<FS_int32T>(extraction.faceKeys.size());
-  FS_int32T totalKeys = 0;
-  clac.Sum(&localKeys, &totalKeys, 1);
-  EXPECT_EQ(totalKeys, sExpectedFaceCount);
+  // Each kept face is a (volume cell, local face) pair whose cell is owned here: owned cells are disjoint across procs,
+  // so local uniqueness of the pair rules out a face kept twice, on this proc or on two procs
+  const FSUnstructMeshData& meshData = mesh.GetMeshData()->GetUnstructCells();
+  const FS_intT procID = clac.GetProcID();
+  std::set<std::pair<FS_intT, FS_intT> > ownerFaces;
+  for(const auto& f : extraction.faces) {
+    const FSCellFace& owner = f.topo()._faceFSDM->mOwner;
+    EXPECT_EQ(owner.mCellProcID, procID);
+    EXPECT_GE(owner.mFaceIndex, 0) << "the owner of a kept face must be a volume cell";
+    const FSCellPool* pool = meshData.GetCellPool(owner.mCellType);
+    ASSERT_NE(pool, nullptr);
+    EXPECT_TRUE(pool->IsOwned(owner.mCell));
+    EXPECT_TRUE(ownerFaces.emplace(owner.mCell, owner.mFaceIndex).second) << "a face was extracted twice on this proc";
+  }
 }
 
 _FS_END_NAMESPACE

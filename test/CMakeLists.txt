@@ -12,7 +12,6 @@ add_executable(FSClippingTest FSClipping/FSClippingTestGeo.cpp
                               FSClipping/FSClippingTestMatches.cpp
                               FSClipping/FSClippingTestGlobalNumbering.cpp
                               FSClipping/FSClippingTestInterface.cpp
-                              FSClipping/FSClippingTestGeomFaceKey.cpp
                               FSClipping/FSClippingTestCellClipped.cpp
                               FSClipping/FSClippingTestCellSource.cpp
                               FSClipping/FSClippingTestNodeRegistry.cpp
