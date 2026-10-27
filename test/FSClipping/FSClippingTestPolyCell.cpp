@@ -59,7 +59,7 @@ protected:
     matches.push_back(mock::MakeMatch(Cell(t), t, std::move(poly), std::move(ids)));
   }
 
-  void Replace(FSMeshEnums::CellType t, const NodeSet& corners) { be.replacedFaces[Cell(t)].push_back(LocalFace(t, corners)); }
+  void Replace(FSMeshEnums::CellType t, const NodeSet& corners) { be.cell2BoundaryFaces[Cell(t)].push_back(LocalFace(t, corners)); }
 
   void BuildRegistry()
   {
@@ -170,7 +170,7 @@ TEST_F(FSPolyCellTest, DegenerateFaceHasZeroNormal)
   EXPECT_TRUE(Near(ComputeFaceNormal(Face{0, 1, 0}, *nodes), FSVec3(0, 0, 0)));
 }
 
-TEST_F(FSPolyCellTest, HexaReplacedFaceIsDropped)
+TEST_F(FSPolyCellTest, HexaBoundaryFaceIsDropped)
 {
   SplitHexaBottom();
   const FSPolyCell cell = Build(FSMeshEnums::CT_Hexa8);
@@ -179,7 +179,7 @@ TEST_F(FSPolyCellTest, HexaReplacedFaceIsDropped)
   EXPECT_EQ(FaceSets(cell).count(NodeSet{0, 1, 2, 3}), 0u);
 }
 
-TEST_F(FSPolyCellTest, HexaKeepsUnreplacedSourceFaces)
+TEST_F(FSPolyCellTest, HexaKeepsNonBoundarySourceFaces)
 {
   SplitHexaBottom();
   const FSPolyCell cell = Build(FSMeshEnums::CT_Hexa8);
@@ -210,7 +210,7 @@ TEST_F(FSPolyCellTest, HexaIsClosedAndOutward)
   EXPECT_NEAR(Volume(cell), 1.0, kEps);
 }
 
-TEST_F(FSPolyCellTest, HexaTwoReplacedFaces)
+TEST_F(FSPolyCellTest, HexaTwoBoundaryFaces)
 {
   SplitHexaBottom();
   Add(FSMeshEnums::CT_Hexa8, {{0, 0, 0}, {0, 0, 1}, {0, 1, 1}, {0, 1, 0}}, {10, 14, 17, 13});

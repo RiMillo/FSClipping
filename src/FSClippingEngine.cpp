@@ -30,9 +30,9 @@ FSTopologyData FSClippingEngine::BuildTopology(FSMesh& mesh, const BoundaryExtra
 
   for(const auto& src : sources) // Cell source first
     src.ForEachOwnedCell([&](FS_intT c) {
-      if(clipped.Contains(c))
+      if(clipped.HasBoundaryFace(c))
         out.AddPoly3D(c, src.Type(), BuildClippedCell(src, c, clipped, nodes));
-      else if(clipped.IsReplacedSurface(c))
+      else if(clipped.IsBoundarySurface(c))
         return;
       else if(src.IsPoly3D())
         out.AddPoly3D(src, c);

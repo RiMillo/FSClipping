@@ -60,7 +60,7 @@ FSNodeRegistry::FSNodeRegistry(FSMesh& mesh, const std::vector<FSCellSource>& so
         const FS_intT oldNodes = src.Node(cell, n);
         const FS_floatT d = coords_[oldNodes].Distance(p);
         if(d <= best) {
-          best = d; // why we change the tolerance?
+          best = d;
           id = oldNodes;
         }
       }

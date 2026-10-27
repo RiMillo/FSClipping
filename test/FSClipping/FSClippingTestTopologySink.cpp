@@ -184,7 +184,7 @@ protected:
       mock::MakeMatch(Cell(t), t, {{0, 0, 0}, {0.5, 0, 0}, {0.5, 1, 0}, {0, 1, 0}}, {10, 100, 101, 13}));
     matches.push_back(
       mock::MakeMatch(Cell(t), t, {{0.5, 0, 0}, {1, 0, 0}, {1, 1, 0}, {0.5, 1, 0}}, {100, 11, 12, 101}));
-    be.replacedFaces[Cell(t)].push_back(LocalFace(t, {0, 1, 2, 3}));
+    be.cell2BoundaryFaces[Cell(t)].push_back(LocalFace(t, {0, 1, 2, 3}));
     // The Quad4 closing that face is replaced by the match polygons, as FSBoundaryFaceProvider records it
     be.surfaceCells[FSMeshEnums::CT_Quad4].insert(Cell(FSMeshEnums::CT_Quad4));
   }
@@ -380,7 +380,7 @@ TEST_F(FSTopologySinkTest, MixedMeshKeepsContainersAligned)
   FS_intT nPoly2DOrigin = 0;
   for(const auto& src : sources)
     src.ForEachOwnedCell([&](FS_intT c) {
-      if(clipped->Contains(c))
+      if(clipped->HasBoundaryFace(c))
         sink.AddPoly3D(c, src.Type(), BuildClippedCell(src, c, *clipped, *nodes));
       else if(src.Type() == FSMeshEnums::CT_Quad4)
         return; // hexa bottom: replaced by its polygons

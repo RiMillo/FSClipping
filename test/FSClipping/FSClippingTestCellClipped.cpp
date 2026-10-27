@@ -28,7 +28,7 @@ std::vector<FSFaceMatch> Matches()
 BoundaryExtraction Boundary()
 {
   BoundaryExtraction be;
-  be.replacedFaces = {{kCorner, {0, 3}}, {kSide, {2}}};
+  be.cell2BoundaryFaces = {{kCorner, {0, 3}}, {kSide, {2}}};
   be.volumeCells = {{FSMeshEnums::CT_Hexa8, {kCorner}}, {FSMeshEnums::CT_Tetra4, {kSide}}};
   be.surfaceCells = {{FSMeshEnums::CT_Quad4, {kQuad}}, {FSMeshEnums::CT_Tri3, {kTri}}};
   return be;
@@ -53,30 +53,30 @@ TEST_F(FSCellClippedTest, MatchesOfGroupsByOwner)
   EXPECT_EQ(&clipped.Match(3), &matches[3]);
 }
 
-TEST_F(FSCellClippedTest, Contains)
+TEST_F(FSCellClippedTest, HasBoundaryFace)
 {
-  EXPECT_TRUE(clipped.Contains(kCorner));
-  EXPECT_TRUE(clipped.Contains(kSide));
-  EXPECT_FALSE(clipped.Contains(kQuad));
-  EXPECT_FALSE(clipped.Contains(kOther));
+  EXPECT_TRUE(clipped.HasBoundaryFace(kCorner));
+  EXPECT_TRUE(clipped.HasBoundaryFace(kSide));
+  EXPECT_FALSE(clipped.HasBoundaryFace(kQuad));
+  EXPECT_FALSE(clipped.HasBoundaryFace(kOther));
 }
 
-TEST_F(FSCellClippedTest, IsReplacedSurfaceAcrossTypes)
+TEST_F(FSCellClippedTest, IsBoundarySurfaceAcrossTypes)
 {
-  EXPECT_TRUE(clipped.IsReplacedSurface(kQuad));
-  EXPECT_TRUE(clipped.IsReplacedSurface(kTri));
-  EXPECT_FALSE(clipped.IsReplacedSurface(kCorner));
-  EXPECT_FALSE(clipped.IsReplacedSurface(kOther));
+  EXPECT_TRUE(clipped.IsBoundarySurface(kQuad));
+  EXPECT_TRUE(clipped.IsBoundarySurface(kTri));
+  EXPECT_FALSE(clipped.IsBoundarySurface(kCorner));
+  EXPECT_FALSE(clipped.IsBoundarySurface(kOther));
 }
 
-TEST_F(FSCellClippedTest, IsReplacedFace)
+TEST_F(FSCellClippedTest, IsBoundaryFace)
 {
-  EXPECT_TRUE(clipped.IsReplacedFace(kCorner, 0));
-  EXPECT_TRUE(clipped.IsReplacedFace(kCorner, 3));
-  EXPECT_FALSE(clipped.IsReplacedFace(kCorner, 1));
-  EXPECT_TRUE(clipped.IsReplacedFace(kSide, 2));
-  EXPECT_FALSE(clipped.IsReplacedFace(kSide, 0));
-  EXPECT_FALSE(clipped.IsReplacedFace(kOther, 0));
+  EXPECT_TRUE(clipped.IsBoundaryFace(kCorner, 0));
+  EXPECT_TRUE(clipped.IsBoundaryFace(kCorner, 3));
+  EXPECT_FALSE(clipped.IsBoundaryFace(kCorner, 1));
+  EXPECT_TRUE(clipped.IsBoundaryFace(kSide, 2));
+  EXPECT_FALSE(clipped.IsBoundaryFace(kSide, 0));
+  EXPECT_FALSE(clipped.IsBoundaryFace(kOther, 0));
 }
 
 TEST_F(FSCellClippedTest, ForEachMatchVisitsAllInOrder)
@@ -95,8 +95,8 @@ TEST(FSCellClipped, EmptyInput)
   const BoundaryExtraction be;
   const FSCellClipped clipped(matches, be);
 
-  EXPECT_FALSE(clipped.Contains(kCorner));
-  EXPECT_FALSE(clipped.IsReplacedSurface(kQuad));
+  EXPECT_FALSE(clipped.HasBoundaryFace(kCorner));
+  EXPECT_FALSE(clipped.IsBoundarySurface(kQuad));
   FS_intT n = 0;
   clipped.ForEachMatch([&](FS_intT, const FSFaceMatch&) { n++; });
   EXPECT_EQ(n, 0);

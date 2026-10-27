@@ -18,9 +18,9 @@ public:
   std::span<const FS_intT> MatchesOf(FS_intT c) const;
 
   const FSFaceMatch& Match(FS_intT m) const noexcept { return matches_[m]; }
-  bool Contains(FS_intT cell) const noexcept { return be_.replacedFaces.contains(cell); }
-  bool IsReplacedSurface(FS_intT surfaceCell) const;
-  bool IsReplacedFace(FS_intT cell, FS_intT localFace) const;
+  bool HasBoundaryFace(FS_intT cell) const noexcept { return be_.cell2BoundaryFaces.contains(cell); }
+  bool IsBoundarySurface(FS_intT surfaceCell) const;
+  bool IsBoundaryFace(FS_intT cell, FS_intT localFace) const;
 
   template<class F> void ForEachMatch(F&& f) const
   {
@@ -33,7 +33,7 @@ private:
   const std::vector<FSFaceMatch>& matches_;
   const BoundaryExtraction& be_;
 
-  std::unordered_map<FS_intT, std::vector<FS_intT> > cellToMatches_; // elemOwner1 -> match indices, increasing
+  std::unordered_map<FS_intT, std::vector<FS_intT> > cell2Matches_; // elemOwner1 -> match indices, increasing
 };
 
 _FS_END_NAMESPACE

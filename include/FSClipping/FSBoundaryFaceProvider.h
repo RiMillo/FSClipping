@@ -13,7 +13,7 @@ _FS_BEGIN_NAMESPACE
 
 struct BoundaryExtraction {
   std::vector<FSClippingFace> faces;
-  std::unordered_map<FS_intT, std::vector<FS_intT> > replacedFaces; // cell ID -> local cell number face on the border
+  std::unordered_map<FS_intT, std::vector<FS_intT> > cell2BoundaryFaces; // cell ID -> local faces on the boundary
 
   std::unordered_map<FS_intT, std::set<FS_intT> > volumeCells;
   std::unordered_map<FS_intT, std::set<FS_intT> > surfaceCells;

@@ -26,7 +26,7 @@ protected:
   const FSNodeRegistry& Build(FS_floatT tol = kTol)
   {
     for(const auto& m : matches)
-      be.replacedFaces[m.elemOwner1].push_back(0);
+      be.cell2BoundaryFaces[m.elemOwner1].push_back(0);
     clipped = std::make_unique<FSCellClipped>(matches, be);
     nodes = std::make_unique<FSNodeRegistry>(mesh, sources, *clipped, tol);
     return *nodes;

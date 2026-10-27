@@ -12,7 +12,7 @@ FSPolyCell BuildClippedCell(const FSCellSource& src, FS_intT cell, const FSCellC
 
   // 1 - CellSourceFace loop
   for(FS_intT f = 0; f < nFaces; f++) {
-    if(matches.IsReplacedFace(cell, f))
+    if(matches.IsBoundaryFace(cell, f))
       continue;
     FS_intT nNodes = src.NFaceCorners(cell, f);
     nodeId.reserve(nNodes);

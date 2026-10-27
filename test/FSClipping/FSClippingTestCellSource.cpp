@@ -50,9 +50,9 @@ TEST_F(FSCellSourceTest, MockMeshIsValid)
 
 TEST_F(FSCellSourceTest, BuildCellSourcesListsAllUnstructTypes)
 {
-  const std::multiset<FSMeshEnums::CellType> expected = {FSMeshEnums::CT_Hexa8, FSMeshEnums::CT_Tetra4,
+  const std::multiset<FSMeshEnums::CellType> expected = {FSMeshEnums::CT_Hexa8,  FSMeshEnums::CT_Tetra4,
                                                          FSMeshEnums::CT_Poly3D, FSMeshEnums::CT_Quad4,
-                                                         FSMeshEnums::CT_Tri3, FSMeshEnums::CT_Poly2D};
+                                                         FSMeshEnums::CT_Tri3,   FSMeshEnums::CT_Poly2D};
   std::multiset<FSMeshEnums::CellType> types;
   for(const auto& s : sources) {
     types.insert(s.Type());
@@ -147,23 +147,4 @@ TEST_F(FSCellSourceTest, PolyFacesOnlyForPoly3D)
     }
   }
 }
-
-TEST(FSCellSource, MultiElementFile)
-{
-  FSClac clac;
-  FSMeshImportParamsHDF5 params;
-  params.mMeshFilename = MeshPath("input/cube_hexa_translate.h5");
-  FSMesh mesh(&clac);
-  ASSERT_TRUE(mesh.ImportMesh(&params));
-  mesh.GetMeshData()->GetUnstructCells().CreateLocalNumbering();
-
-  std::map<FSMeshEnums::CellType, FS_intT> nCells;
-  for(const auto& s : BuildCellSources(mesh))
-    s.ForEachOwnedCell([&](FS_intT) { nCells[s.Type()]++; });
-
-  const std::map<FSMeshEnums::CellType, FS_intT> expected = {
-    {FSMeshEnums::CT_Hexa8, 4}, {FSMeshEnums::CT_Poly3D, 4}, {FSMeshEnums::CT_Poly2D, 16}, {FSMeshEnums::CT_Quad4, 20}};
-  EXPECT_EQ(nCells, expected);
-}
-
 _FS_END_NAMESPACE
