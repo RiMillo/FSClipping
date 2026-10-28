@@ -12,7 +12,7 @@
 
 _FS_BEGIN_NAMESPACE
 
-TEST(FSClippingTestInterfaceParSym, CubeVolume)
+TEST(FSClippingTestInterfaceParSym, Cube)
 {
   FSClac globalClac(MPI_COMM_WORLD);
   FS_intT procId = globalClac.GetProcID();
@@ -71,7 +71,7 @@ TEST(FSClippingTestInterfaceParSym, CubeVolume)
       ptr->GetUnstructCells().CreateLocalNumbering();
     polyMeshExtractFaces(ptr->GetUnstructCells());
     polyMeshExportImport(
-      &clac, ptr, MeshPath(meshID == 1 ? "cube_clipped_vol_coarse_sym" : "output/cube_clipped_vol_fine_sym"), 1, true);
+      &clac, ptr, MeshPath(meshID == 1 ? "output/cube_clipped_coarse_sym" : "output/cube_clipped_fine_sym"), 1, true);
   }
 
   // VTK part if you want export
@@ -83,13 +83,13 @@ TEST(FSClippingTestInterfaceParSym, CubeVolume)
   //    // Export the clipped mesh with its as-clipped partition (one VTK per proc).
   //    ptr->GetUnstructCells().CreateLocalNumbering();
   //    exportMeshVTK(&clac, ptr,
-  //                  MeshPath(meshID == 1 ? "output/cube_clipped_vol_coarse_view" :
-  //                  "output/cube_clipped_vol_fine_view"));
+  //                  MeshPath(meshID == 1 ? "output/cube_clipped_coarse_view" :
+  //                  "output/cube_clipped_fine_view"));
   //  }
   //}
 }
 
-TEST(FSClippingTestInterfaceParSym, TwoCylindersVolume)
+TEST(FSClippingTestInterfaceParSym, TwoCylinders)
 {
   FSClac globalClac(MPI_COMM_WORLD);
   FS_intT procId = globalClac.GetProcID();
@@ -149,7 +149,7 @@ TEST(FSClippingTestInterfaceParSym, TwoCylindersVolume)
       ptr->GetUnstructCells().CreateLocalNumbering();
     polyMeshExtractFaces(ptr->GetUnstructCells());
     polyMeshExportImport(
-      &clac, ptr, MeshPath(meshID == 1 ? "output/cyl1_clipped_vol_sym" : "output/cyl2_clipped_vol_sym"), 1, true);
+      &clac, ptr, MeshPath(meshID == 1 ? "output/cyl1_clipped_sym" : "output/cyl2_clipped_sym"), 1, true);
   }
 
   // VTK part if you want export
@@ -162,7 +162,7 @@ TEST(FSClippingTestInterfaceParSym, TwoCylindersVolume)
   //    if(!ptr->GetUnstructCells().HasLocalNumbering())
   //      ptr->GetUnstructCells().CreateLocalNumbering();
   //    exportMeshVTK(&clac, ptr,
-  //                  MeshPath(meshID == 1 ? "output/cyl1_clipped_vol_view" : "output/cyl2_clipped_vol_view"));
+  //                  MeshPath(meshID == 1 ? "output/cyl1_clipped_view" : "output/cyl2_clipped_view"));
   //  }
   //}
 }

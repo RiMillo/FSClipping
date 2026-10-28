@@ -3,7 +3,7 @@
 
 #include "FSClipping/FSBoundaryFaceProvider.h"
 #include "FSClipping/FSFaceMatcher.h"
-#include "FSClipping/FSTopologyAssembler.h"
+#include "FSClipping/FSTopologyData.h"
 #include <FSMesh.h>
 
 _FS_BEGIN_NAMESPACE
@@ -12,12 +12,9 @@ _FS_BEGIN_NAMESPACE
 class FSClippingEngine
 {
 public:
-  enum class Mode { Surface, Volume };
-
   explicit FSClippingEngine(FS_floatT tol) : tol_(tol) {}
 
-  FSTopologyData BuildTopology(FSMesh& mesh, const BoundaryExtraction& be, const std::vector<FSFaceMatch>& matches,
-                               Mode mode);
+  FSTopologyData BuildTopology(FSMesh& mesh, const BoundaryExtraction& be, const std::vector<FSFaceMatch>& matches);
 
   FSMesh Reconstruct(FSClac& clac, FSMesh& meshOriginal, FSTopologyData& topo, bool copyAttributes = false);
 

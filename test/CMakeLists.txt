@@ -10,14 +10,23 @@ include(GoogleTest)
 add_executable(FSClippingTest FSClipping/FSClippingTestGeo.cpp
                               FSClipping/FSClippingTestBoundaryExtractor.cpp
                               FSClipping/FSClippingTestMatches.cpp
-                              FSClipping/FSClippingTestCell2NodeBuilder.cpp
-                              FSClipping/FSClippingTestPolyFaceBuilder.cpp
                               FSClipping/FSClippingTestGlobalNumbering.cpp
                               FSClipping/FSClippingTestInterface.cpp
-                              FSClipping/FSClippingTestGeomFaceKey.cpp)
+                              FSClipping/FSClippingTestCellClipped.cpp
+                              FSClipping/FSClippingTestCellSource.cpp
+                              FSClipping/FSClippingTestNodeRegistry.cpp
+                              FSClipping/FSClippingTestPolyCell.cpp
+                              FSClipping/FSClippingTestTopologySink.cpp
+                              FSClipping/FSClippingTestCellAttributes.cpp)
 target_link_libraries(FSClippingTest PUBLIC GTest::gtest_mpi_main fsclipping::fsclipping)
 set_property(TARGET FSClippingTest PROPERTY CROSSCOMPILING_EMULATOR '${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 1')
 gtest_discover_tests(FSClippingTest DISCOVERY_TIMEOUT 20 PROPERTIES LABELS "CppUnitTests")
+
+# Death tests end in MPI_Abort, which kills the whole job under mpiexec: run them as an MPI singleton
+add_executable(FSClippingDeathTest FSClipping/FSClippingTestCellClipped.cpp
+                                   FSClipping/FSClippingTestNodeRegistry.cpp)
+target_link_libraries(FSClippingDeathTest PUBLIC GTest::gtest_mpi_main fsclipping::fsclipping)
+gtest_discover_tests(FSClippingDeathTest DISCOVERY_TIMEOUT 20 TEST_FILTER "*Death*" PROPERTIES LABELS "CppUnitTests")
 
 # Parallel tests — one executable per MPI proc count, each launched at exactly
 # that proc count. gtest_discover_tests reads the proc count from the target's

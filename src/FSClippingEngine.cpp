@@ -1,6 +1,10 @@
 #include "FSClipping/FSClippingEngine.h"
+#include "FSClipping/FSCellClipped.h"
+#include "FSClipping/FSCellSource.h"
 #include "FSClipping/FSFaceExchange.h"
 #include "FSClipping/FSMeshReconstruction.h"
+#include "FSClipping/FSNodeRegistry.h"
+#include "FSClipping/FSTopologySink.h"
 #include <FSMeshData.h>
 #include <numeric>
 
@@ -12,42 +16,37 @@ _FS_BEGIN_NAMESPACE
 //
 
 FSTopologyData FSClippingEngine::BuildTopology(FSMesh& mesh, const BoundaryExtraction& be,
-                                               const std::vector<FSFaceMatch>& matches, Mode mode)
+                                               const std::vector<FSFaceMatch>& matches)
 {
-  // const FS_intT master = mesh.GetClac()->GetProcID();
-  FSTopologyAssembler topologyAssembler(tol_);
-  FSTopologyData surfaceTopology = topologyAssembler.BuildSurfaceTopo(matches, be.faceKeys);
-  if(mode == Mode::Surface)
-    return surfaceTopology;
+  // 1 - Build the input cells
+  const std::vector<FSCellSource> sources = BuildCellSources(mesh);
+  const FSCellClipped clipped(matches, be);
 
-  FSFloatArrayT oldCoords;
-  FS_intT nodeOffset;
-  FSQuantityDescArrayT coordDesc;
-  mesh.GetMeshData()->GetUnstructCells().GetCoordinates3D(coordDesc, oldCoords, nodeOffset);
+  // 2 - Build the nodes
+  const FSNodeRegistry nodes(mesh, sources, clipped, tol_);
 
-  FSTopologyData volumeTopology;
+  // 3 - Build the topology
+  FSTopologySink out(nodes);
 
-  for(const auto& t : mesh.GetCellTypes()) {
+  for(const auto& src : sources) // Cell source first
+    src.ForEachOwnedCell([&](FS_intT c) {
+      if(clipped.HasBoundaryFace(c))
+        out.AddPoly3D(c, src.Type(), BuildClippedCell(src, c, clipped, nodes));
+      else if(clipped.IsBoundarySurface(c))
+        return;
+      else if(src.IsPoly3D())
+        out.AddPoly3D(src, c);
+      else if(src.IsPoly2D()) // global number -1: numbered after the matches by FSMeshReconstruction
+        out.AddPoly2D(c, src.Type(), src.Row(c), -1, -1);
+      else
+        out.AddStandard(src, c);
+    });
 
-    if(FSMeshEnums::IsUnstructVolumeCellType(t)) {
+  clipped.ForEachMatch([&](FS_intT m, const FSFaceMatch& f) {
+    out.AddPoly2D(f.faceOwner1, f.faceOwnerType1, nodes.Polygon(m), f.globalCellId, f.faceMarker1);
+  });
 
-      const auto& cell2Node = mesh.GetCell2Node(t);
-      const auto& cellPool = mesh.GetMeshData()->GetUnstructCells().GetCellPool(t);
-      const auto it = be.volumeCells.find(t);
-      const auto& bdryCellPool = (it != be.volumeCells.end()) ? it->second : std::set<FS_intT>();
-
-      topologyAssembler.BuildVolumeTopo(cell2Node, bdryCellPool, *cellPool, oldCoords, volumeTopology);
-    }
-  }
-  topologyAssembler.AppendUnclippedSurfaces(mesh, be.surfaceCells, oldCoords, volumeTopology);
-  volumeTopology.cellParent[FSMeshEnums::CellType::CT_Poly2D] =
-    surfaceTopology.cellParent[FSMeshEnums::CellType::CT_Poly2D];
-  volumeTopology.cellParentType[FSMeshEnums::CellType::CT_Poly2D] =
-    surfaceTopology.cellParentType[FSMeshEnums::CellType::CT_Poly2D];
-  volumeTopology.poly2DGlobalNumbers = surfaceTopology.poly2DGlobalNumbers;
-  volumeTopology.poly2DMarkers = surfaceTopology.poly2DMarkers;
-
-  return volumeTopology;
+  return std::move(out).Finalize();
 }
 
 //-----------------------------------------------------------------------------

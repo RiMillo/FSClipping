@@ -9,14 +9,15 @@ add_library(fsclipping SHARED   FSClippingUtil.cpp
                                 FSClippingFace.cpp
                                 FSFaceSeparator.cpp
                                 FSFaceMatcher.cpp
-                                FSCell2NodeBuilder.cpp
-                                FSPolyFaceBuilder.cpp
                                 FSBoundaryFaceProvider.cpp
-                                FSTopologyAssembler.cpp
                                 FSMeshReconstruction.cpp
                                 FSClippingEngine.cpp
-                                FSClippingInterface.cpp
                                 FSFaceExchange.cpp
+                                FSCellSource.cpp
+                                FSCellClipped.cpp
+                                FSNodeRegistry.cpp
+                                FSPolyCell.cpp
+                                FSTopologySink.cpp
                                 FSClippedMeshParams.cpp
                                 FSClippedMesh.cpp)
 
@@ -49,18 +50,20 @@ target_link_libraries(fsclipping
 set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSBoundaryFace.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSFaceMatcher.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSCellAdress.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSClippingUtil.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSFace.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSFaceSeparator.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSCell2NodeBuilder.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSPolyFaceBuilder.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSBoundaryFaceProvider.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSTopologyAssembler.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSMeshReconstruction.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSNodeKey.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSClippingEngine.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSClippingInterface.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSFaceExchange.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSCellSource.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSCellClipped.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSNodeRegistry.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSPolyCell.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSTopologySink.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSTopologyData.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSClippedMeshParams.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSClippedMeshParams.i
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/FSClipping/FSClippedMesh.h
