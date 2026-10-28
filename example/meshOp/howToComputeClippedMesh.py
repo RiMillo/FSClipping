@@ -13,6 +13,8 @@ def MeshID(procID, nMesh1):
         return 1
     return 2
 
+inputDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "test", "Mesh", "input")
+
 # --- parallel setup
 globalClac = FSClac()
 nTotalProc = globalClac.NWorldProcs()
@@ -34,7 +36,7 @@ dm = FSDataManager(globalClac)
 # --- load meshes on their respective processes
 if meshID == 1:
     fsmeshOrig1 = dm.GetMesh("original1", clac)
-    meshOps = (("ImportMeshTAU", {"MeshFilename": "test/Mesh/input/mesh_cylinder_1.grid"}),
+    meshOps = (("ImportMeshTAU", {"MeshFilename": os.path.join(inputDir, "mesh_cylinder_1.grid")}),
                "RepartitionMeshRCB",
                "CreateLocalNumbering",
                "PrintInfo",
@@ -44,7 +46,7 @@ if meshID == 1:
 
 if meshID == 2:
     fsmeshOrig2 = dm.GetMesh("original2", clac)
-    meshOps = (("ImportMeshTAU", {"MeshFilename": "test/Mesh/input/mesh_cylinder_2.grid"}),
+    meshOps = (("ImportMeshTAU", {"MeshFilename": os.path.join(inputDir, "mesh_cylinder_2.grid")}),
                "RepartitionMeshRCB",
                "CreateLocalNumbering",
                "PrintInfo",

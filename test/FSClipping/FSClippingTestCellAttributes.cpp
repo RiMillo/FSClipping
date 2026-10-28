@@ -14,14 +14,6 @@ const FSString kCADID = "CADID";
 const FSString kQuadOnly = "QuadOnly";
 const FSString kCADGroupID = FSEnums::AttributeTypeToString(FSEnums::AT_CADGroupID);
 
-void AddAttribute(FSMesh& mesh, const FSString& name, FSMeshEnums::CellType t, const std::vector<FS_intT>& v)
-{
-  FSIntArrayT values(FS_intT(v.size()));
-  for(FS_intT i = 0; i < FS_intT(v.size()); i++)
-    values[i] = v[i];
-  mesh.GetMeshData()->GetUnstructCells().InitCellAttribute(name, t, values);
-}
-
 // Minimal output mesh: only the Poly2D / Poly3D pool sizes matter, not the geometry
 FSMesh BuildTarget(FSClac& clac, FS_intT nPoly2D, FS_intT nPoly3D)
 {
@@ -82,13 +74,13 @@ class FSCopyCellAttributesTest : public ::testing::Test
 protected:
   void SetUp() override
   {
-    AddAttribute(source, kCADID, FSMeshEnums::CT_Tri3, {11});
-    AddAttribute(source, kCADID, FSMeshEnums::CT_Quad4, {22});
-    AddAttribute(source, kCADID, FSMeshEnums::CT_Hexa8, {100});
-    AddAttribute(source, kCADID, FSMeshEnums::CT_Tetra4, {200});
-    AddAttribute(source, kQuadOnly, FSMeshEnums::CT_Quad4, {7});
-    AddAttribute(source, kCADGroupID, FSMeshEnums::CT_Tri3, {3});
-    AddAttribute(source, kCADGroupID, FSMeshEnums::CT_Quad4, {4});
+    mock::AddAttribute(source, kCADID, FSMeshEnums::CT_Tri3, {11});
+    mock::AddAttribute(source, kCADID, FSMeshEnums::CT_Quad4, {22});
+    mock::AddAttribute(source, kCADID, FSMeshEnums::CT_Hexa8, {100});
+    mock::AddAttribute(source, kCADID, FSMeshEnums::CT_Tetra4, {200});
+    mock::AddAttribute(source, kQuadOnly, FSMeshEnums::CT_Quad4, {7});
+    mock::AddAttribute(source, kCADGroupID, FSMeshEnums::CT_Tri3, {3});
+    mock::AddAttribute(source, kCADGroupID, FSMeshEnums::CT_Quad4, {4});
   }
 
   // One output Poly type, cell i has parent parents[i] (pool offset of parentTypes[i])
