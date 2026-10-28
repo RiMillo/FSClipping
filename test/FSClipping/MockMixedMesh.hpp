@@ -114,6 +114,14 @@ inline FSMesh BuildMixedMesh(FSClac& clac)
   return mesh;
 }
 
+inline void AddAttribute(FSMesh& mesh, const FSString& name, FSMeshEnums::CellType t, const std::vector<FS_intT>& v)
+{
+  FSIntArrayT values(FS_intT(v.size()));
+  for(FS_intT i = 0; i < FS_intT(v.size()); i++)
+    values[i] = v[i];
+  mesh.GetMeshData()->GetUnstructCells().InitCellAttribute(name, t, values);
+}
+
 inline FS_intT Offset(const FSMesh& mesh, FSMeshEnums::CellType t)
 {
   return mesh.GetMeshData()->GetUnstructCells().GetCellPool(t)->GetOffset();

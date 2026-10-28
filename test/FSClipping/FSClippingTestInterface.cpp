@@ -255,7 +255,7 @@ TEST(FSClippingTestInterface, ReconstructClippedMeshHexaHexaRotate)
 {
   FSClac clac1, clac2, clac3;
 
-  auto mesh1 = LoadMeshTau(clac1, MeshPath("input/square_mesh.grid"));
+  auto mesh1 = LoadMeshTau(clac1, MeshPath("input/cube_hexa_coarse_par.grid"));
   auto mesh2 = LoadMeshTau(clac2, MeshPath("input/square_mesh_rotate.grid"));
 
   const FS_intT marker1 = 2;

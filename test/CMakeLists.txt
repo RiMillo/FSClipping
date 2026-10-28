@@ -62,3 +62,22 @@ add_parallel_test(5 FSClipping/Parallel/FSClippingTestInterfaceSym.cpp
                     FSClipping/Parallel/FSClippingTestMatchRouting.cpp)
 add_parallel_test(9 FSClipping/Parallel/FSClippingTestPoly2DAttributesPar.cpp)
 add_parallel_test(6 FSClipping/Parallel/FSClippingTestInterfaceAsym.cpp)
+
+# Python examples, run against the module of the build tree (build/py) rather than the installed one
+set(example_dir ${CMAKE_SOURCE_DIR}/example/meshOp)
+set(example_env "PYTHONPATH=${CMAKE_BINARY_DIR}/py:$ENV{PYTHONPATH}")
+
+add_test(NAME example.checkForDataManagerOp
+         COMMAND ${Python_EXECUTABLE} ${example_dir}/checkForDataManagerOp.py)
+set_tests_properties(example.checkForDataManagerOp PROPERTIES
+                     ENVIRONMENT "${example_env}"
+                     PASS_REGULAR_EXPRESSION "FSClippedMesh is registered : *True"
+                     LABELS "PythonExamples")
+
+add_test(NAME example.howToComputeClippedMesh
+         COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 6 ${Python_EXECUTABLE}
+                 ${example_dir}/howToComputeClippedMesh.py)
+set_tests_properties(example.howToComputeClippedMesh PROPERTIES
+                     ENVIRONMENT "${example_env}"
+                     FAIL_REGULAR_EXPRESSION "\\*\\*\\* ERROR \\*\\*\\*"
+                     LABELS "PythonExamples")
